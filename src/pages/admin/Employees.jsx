@@ -294,7 +294,7 @@ export default function Employees() {
                   <th className="pb-3 font-medium">Role</th>
                   <th className="pb-3 font-medium">Join Date</th>
                   <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium">Actions</th>
+                  <th className="pb-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -319,41 +319,53 @@ export default function Employees() {
                       <Badge status={emp.status} />
                     </td>
                     <td className="py-4">
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setDetailId(emp.id)}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-dark"
+                      <div className="flex justify-end">
+                        <div
+                          className="inline-flex items-center rounded-lg border border-neutral-200 bg-white p-0.5 shadow-sm"
+                          role="group"
+                          aria-label={`Actions for ${emp.name}`}
                         >
-                          <Eye className="h-4 w-4" />
-                          View
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(emp)}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Edit
-                        </button>
-                        {isSuperAdmin && (
                           <button
                             type="button"
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  `Move ${emp.name} to the recycle bin? Restore from Super Admin → Recycle bin.`,
-                                )
-                              ) {
-                                softDeleteEmployee(emp.id)
-                              }
-                            }}
-                            className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700"
+                            onClick={() => setDetailId(emp.id)}
+                            title="View profile"
+                            className="rounded-md p-2 text-primary transition-colors hover:bg-primary-light"
                           >
-                            <Trash2 className="h-4 w-4" />
-                            Remove
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">View</span>
                           </button>
-                        )}
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(emp)}
+                            title="Edit employee"
+                            className="rounded-md p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-foreground"
+                          >
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </button>
+                          {isSuperAdmin && (
+                            <>
+                              <span className="mx-0.5 h-5 w-px bg-neutral-200" aria-hidden />
+                              <button
+                                type="button"
+                                title="Move to recycle bin"
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      `Move ${emp.name} to the recycle bin? Restore from Super Admin → Recycle bin.`,
+                                    )
+                                  ) {
+                                    softDeleteEmployee(emp.id)
+                                  }
+                                }}
+                                className="rounded-md p-2 text-red-600 transition-colors hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Remove</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>

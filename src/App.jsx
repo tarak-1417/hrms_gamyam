@@ -22,6 +22,7 @@ import ManagerTeam from './pages/manager/Team'
 import HrAttendance from './pages/shared/HrAttendance'
 import HrLeave from './pages/shared/HrLeave'
 import DocumentTemplates from './pages/shared/DocumentTemplates'
+import AuditLogs from './pages/shared/AuditLogs'
 
 import SuperAdminDashboard from './pages/superadmin/Dashboard'
 import Companies from './pages/superadmin/Companies'
@@ -29,6 +30,11 @@ import Subscriptions from './pages/superadmin/Subscriptions'
 import Monitoring from './pages/superadmin/Monitoring'
 import SuperAdminAnalytics from './pages/superadmin/Analytics'
 import Billing from './pages/superadmin/Billing'
+import Organization from './pages/superadmin/Organization'
+import PlatformUsers from './pages/superadmin/PlatformUsers'
+import GlobalSettings from './pages/superadmin/GlobalSettings'
+import SuperAdminPermissions from './pages/superadmin/Permissions'
+import DeletedRecordsRecovery from './pages/superadmin/DeletedRecordsRecovery'
 
 import EmployeeDashboard from './pages/employee/Dashboard'
 import Profile from './pages/employee/Profile'
@@ -99,6 +105,7 @@ export default function App() {
             <Route path="roles" element={<Roles />} />
             <Route path="settings" element={<Settings />} />
             <Route path="documents" element={<DocumentTemplates />} />
+            <Route path="audit-logs" element={<AuditLogs />} />
           </Route>
 
           <Route
@@ -110,12 +117,29 @@ export default function App() {
             }
           >
             <Route index element={<SuperAdminDashboard />} />
+            <Route path="organization" element={<Organization />} />
             <Route path="companies" element={<Companies />} />
+            <Route path="users" element={<PlatformUsers />} />
+            <Route path="permissions" element={<SuperAdminPermissions />} />
+            <Route path="settings" element={<GlobalSettings />} />
             <Route path="subscriptions" element={<Subscriptions />} />
             <Route path="monitoring" element={<Monitoring />} />
             <Route path="analytics" element={<SuperAdminAnalytics />} />
             <Route path="billing" element={<Billing />} />
+            <Route path="audit-logs" element={<AuditLogs />} />
+            <Route path="trash" element={<DeletedRecordsRecovery />} />
             <Route path="documents" element={<DocumentTemplates />} />
+            <Route path="hr">
+              <Route index element={<HrDashboard />} />
+              <Route path="employees" element={<Employees />} />
+              <Route path="attendance" element={<HrAttendance />} />
+              <Route path="leave" element={<HrLeave />} />
+              <Route path="payroll" element={<Payroll />} />
+              <Route path="recruitment" element={<Recruitment />} />
+              <Route path="reports" element={<ManagerReports />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="audit-logs" element={<AuditLogs />} />
+            </Route>
           </Route>
 
           <Route

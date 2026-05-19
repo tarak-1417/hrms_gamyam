@@ -1,19 +1,33 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 import { Plus, Eye } from 'lucide-react'
+import { useAuth } from '../../hooks/useAuth'
 import { useHrms } from '../../hooks/useHrms'
+import { getManagerTeamEmployees } from '../../utils/organizationHelpers'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import EmployeeDetailModal from '../../components/hr/EmployeeDetailModal'
 
 export default function ManagerTeam() {
-  const { filterEmployees, searchQuery, addEmployee, getEmployeeDetails } = useHrms()
+  const { user } = useAuth()
+  const { employees, departments, searchQuery, addEmployee, getEmployeeDetails } = useHrms()
   const [modalOpen, setModalOpen] = useState(false)
   const [detailId, setDetailId] = useState(null)
   const employeeDetails = detailId ? getEmployeeDetails(detailId) : null
   const [form, setForm] = useState({ name: '', email: '', role: '', phone: '' })
 
-  const team = filterEmployees(searchQuery, 'Engineering')
+  const team = useMemo(() => {
+    const base = getManagerTeamEmployees({ user, employees, departments })
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return base
+    return base.filter(
+      (e) =>
+        e.name.toLowerCase().includes(q) ||
+        e.email.toLowerCase().includes(q) ||
+        e.role.toLowerCase().includes(q),
+    )
+  }, [user, employees, departments, searchQuery])
+
+  const deptLabel = team[0]?.department || 'your team'
 
   const handleCreate = (e) => {
     e.preventDefault()
@@ -30,7 +44,9 @@ export default function ManagerTeam() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="page-title">My Team</h1>
-          <p className="mt-1 text-muted">Engineering department — {team.length} members</p>
+          <p className="mt-1 text-muted">
+            {deptLabel} — {team.length} direct / team member{team.length === 1 ? '' : 's'}
+          </p>
         </div>
         <button
           type="button"

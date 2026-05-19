@@ -29,6 +29,9 @@ export default function EmployeeFormModal({
   form,
   setForm,
   departments,
+  designations = [],
+  branches = [],
+  managers = [],
   onSubmit,
   autoPayrollPreview,
 }) {
@@ -100,15 +103,67 @@ export default function EmployeeFormModal({
                 ))}
               </select>
             </Field>
-            <Field label="Job role">
-              <input
-                required
-                value={form.role}
-                onChange={(e) => setForm({ ...form, role: e.target.value })}
-                placeholder="e.g. Senior Developer"
-                className={inputClass}
-              />
+            <Field label="Designation / job role">
+              {designations.length > 0 ? (
+                <select
+                  required
+                  value={form.role}
+                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  className={inputClass}
+                >
+                  <option value="">Select designation</option>
+                  {designations.map((title) => (
+                    <option key={title} value={title}>
+                      {title}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  required
+                  value={form.role}
+                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  placeholder="e.g. Senior Developer"
+                  className={inputClass}
+                />
+              )}
             </Field>
+            {branches.length > 0 && (
+              <Field label="Branch / location">
+                <select
+                  value={form.branchId || ''}
+                  onChange={(e) => setForm({ ...form, branchId: e.target.value })}
+                  className={inputClass}
+                >
+                  <option value="">— Default —</option>
+                  {branches
+                    .filter((b) => b.status !== 'inactive')
+                    .map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                </select>
+              </Field>
+            )}
+            {managers.length > 0 && (
+              <Field label="Reporting manager">
+                <select
+                  value={form.managerId || ''}
+                  onChange={(e) => setForm({ ...form, managerId: e.target.value })}
+                  className={inputClass}
+                >
+                  <option value="">— No manager —</option>
+                  {managers
+                    .filter((m) => m.id !== editingId)
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} · {m.role}
+                      </option>
+                    ))}
+                </select>
+              </Field>
+            )}
             <Field label="Phone">
               <input
                 value={form.phone}

@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import { useHrms } from '../../hooks/useHrms'
@@ -5,8 +6,9 @@ import { useAuth } from '../../hooks/useAuth'
 import { formatLeaveDateRange, formatLeaveDuration } from '../../utils/timeUtils'
 
 export default function Leave() {
-  const { leaveRequests, updateLeaveStatus } = useHrms()
+  const { leaveRequests, updateLeaveStatus, softDeleteLeaveRequest } = useHrms()
   const { user } = useAuth()
+  const isSuperAdmin = user?.role === 'superadmin'
 
   return (
     <Card title="All Leave Requests">
@@ -35,24 +37,41 @@ export default function Leave() {
                   <Badge status={leave.status} />
                 </td>
                 <td className="py-4">
-                  {leave.status === 'pending' && (
-                    <div className="flex gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {leave.status === 'pending' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => updateLeaveStatus(leave.id, 'approved', user?.name)}
+                          className="rounded bg-primary px-2 py-1 text-xs font-medium text-white hover:bg-primary-dark"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateLeaveStatus(leave.id, 'rejected', user?.name)}
+                          className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    {isSuperAdmin && (
                       <button
                         type="button"
-                        onClick={() => updateLeaveStatus(leave.id, 'approved', user?.name)}
-                        className="rounded bg-primary px-2 py-1 text-xs font-medium text-white hover:bg-primary-dark"
+                        title="Move to recycle bin"
+                        onClick={() => {
+                          if (window.confirm('Move this leave request to the recycle bin?')) {
+                            softDeleteLeaveRequest(leave.id)
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
                       >
-                        Approve
+                        <Trash2 className="h-3 w-3" />
+                        Remove
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => updateLeaveStatus(leave.id, 'rejected', user?.name)}
-                        className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

@@ -39,6 +39,7 @@ export default function DocumentTemplateFormModal({
   template,
   onSave,
   sampleEmployee,
+  orgContext,
 }) {
   const isEdit = Boolean(template?.id)
   const [form, setForm] = useState(EMPTY_TEMPLATE_FORM)
@@ -77,12 +78,12 @@ export default function DocumentTemplateFormModal({
   }, [open, template])
 
   const previewContent = useMemo(() => {
-    const data = buildMergeData(sampleEmployee)
+    const data = buildMergeData(sampleEmployee, {}, orgContext)
     form.fields.forEach((f) => {
       if (f.defaultValue && !data[f.key]) data[f.key] = f.defaultValue
     })
     return renderTemplate(form.body, data)
-  }, [form.body, form.fields, sampleEmployee])
+  }, [form.body, form.fields, sampleEmployee, orgContext])
 
   const insertPlaceholder = (key) => {
     const token = `{{${key}}}`

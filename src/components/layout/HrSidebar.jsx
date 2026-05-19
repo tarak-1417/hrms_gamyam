@@ -3,8 +3,9 @@ import { LogOut, X } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import BrandLogo from '../BrandLogo'
 
-export default function HrSidebar({ navItems, portalLabel, mobileOpen, onClose }) {
+export default function HrSidebar({ navItems, navSections, portalLabel, mobileOpen, onClose }) {
   const { user, logout } = useAuth()
+  const sections = navSections ?? [{ label: null, items: navItems ?? [] }]
 
   const handleNav = () => {
     onClose?.()
@@ -32,23 +33,37 @@ export default function HrSidebar({ navItems, portalLabel, mobileOpen, onClose }
       </div>
 
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-3 py-4">
-        {navItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/manager' || to === '/admin' || to === '/superadmin'}
-            onClick={handleNav}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-                isActive
-                  ? 'bg-primary text-white shadow-lg shadow-primary/30'
-                  : 'text-white/60 hover:bg-white/10 hover:text-white'
-              }`
-            }
-          >
-            <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
-            {label}
-          </NavLink>
+        {sections.map((section, si) => (
+          <div key={section.label ?? si} className={si > 0 ? 'mt-4 border-t border-white/10 pt-4' : ''}>
+            {section.label && (
+              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-white/35">
+                {section.label}
+              </p>
+            )}
+            {section.items.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={
+                  to === '/manager' ||
+                  to === '/admin' ||
+                  to === '/superadmin' ||
+                  to === '/superadmin/hr'
+                }
+                onClick={handleNav}
+                className={({ isActive }) =>
+                  `mb-0.5 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                      : 'text-white/60 hover:bg-white/10 hover:text-white'
+                  }`
+                }
+              >
+                <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+                {label}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 

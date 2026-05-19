@@ -23,16 +23,19 @@ export const selectAdminStats = createSelector(selectHrms, (hrms) => {
 })
 
 export const selectManagerKpis = createSelector(selectHrms, (hrms) => {
-  const team = hrms.employees.filter((e) => e.department === 'Engineering')
+  const engineering = hrms.employees.filter(
+    (e) => e.department === 'Engineering' && e.status !== 'inactive',
+  )
+  const teamIds = new Set(engineering.map((e) => e.id))
   const present = hrms.attendanceRecords.filter(
-    (a) => team.some((t) => t.id === a.employeeId) && a.status === 'present',
+    (a) => teamIds.has(a.employeeId) && a.status === 'present',
   ).length
   return {
-    teamSize: team.length,
+    teamSize: engineering.length,
     presentToday: present,
     pendingApprovals: hrms.leaveRequests.filter((l) => l.status === 'pending').length,
-    openPositions: 3,
-    avgAttendance: team.length ? Math.round((present / team.length) * 100) : 0,
+    openPositions: (hrms.jobPostings || []).filter((j) => j.status === 'active').length,
+    avgAttendance: engineering.length ? Math.round((present / engineering.length) * 100) : 0,
   }
 })
 

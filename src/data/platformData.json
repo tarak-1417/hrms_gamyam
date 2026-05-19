@@ -1,0 +1,95 @@
+{
+  "nextId": 200,
+  "organizations": [
+    {
+      "id": "org-gamyam",
+      "name": "Gamyam Technologies",
+      "slug": "gamyam",
+      "plan": "Enterprise",
+      "employeeCount": 72,
+      "status": "active",
+      "adminEmail": "admin@gamyam.com",
+      "createdAt": "2025-01-10"
+    },
+    {
+      "id": "org-acme",
+      "name": "Acme Corp",
+      "slug": "acme",
+      "plan": "Professional",
+      "employeeCount": 45,
+      "status": "active",
+      "adminEmail": "hr@acme.com",
+      "createdAt": "2025-03-22"
+    },
+    {
+      "id": "org-startup",
+      "name": "StartUp Inc",
+      "slug": "startup-inc",
+      "plan": "Starter",
+      "employeeCount": 12,
+      "status": "trial",
+      "adminEmail": "founder@startup.inc",
+      "createdAt": "2026-02-01"
+    }
+  ],
+  "users": [
+    {
+      "id": "u-super",
+      "email": "super@gamyam.com",
+      "password": "super123",
+      "role": "superadmin",
+      "name": "Super Admin",
+      "organizationId": null,
+      "blocked": false
+    },
+    {
+      "id": "u-admin",
+      "email": "admin@gamyam.com",
+      "password": "admin123",
+      "role": "admin",
+      "name": "Admin User",
+      "organizationId": "org-gamyam",
+      "blocked": false
+    },
+    {
+      "id": "u-manager",
+      "email": "manager@gamyam.com",
+      "password": "mgr123",
+      "role": "manager",
+      "name": "Priya Sharma",
+      "organizationId": "org-gamyam",
+      "employeeId": "EMP007",
+      "blocked": false
+    },
+    {
+      "id": "u-employee",
+      "email": "arjun@company.com",
+      "password": "emp123",
+      "role": "employee",
+      "name": "Arjun Mehta",
+      "organizationId": "org-gamyam",
+      "employeeId": "EMP001",
+      "blocked": false
+    },
+    {
+      "id": "u-acme-admin",
+      "email": "hr@acme.com",
+      "password": "acme123",
+      "role": "admin",
+      "name": "Acme HR Admin",
+      "organizationId": "org-acme",
+      "blocked": false
+    }
+  ],
+  "settings": {
+    "platformName": "Gamyam HRMS Cloud",
+    "supportEmail": "support@gamyam.com",
+    "maintenanceMode": false,
+    "allowSelfSignup": false,
+    "defaultTimezone": "Asia/Kolkata",
+    "defaultCurrency": "INR",
+    "sessionTimeoutMinutes": 480,
+    "maxOrganizations": 100,
+    "enforceMfa": false
+  }
+}

@@ -35,8 +35,8 @@ npm run dev
 - Tasks, Documents, Performance, Messages
 
 ### Super Admin (`/superadmin`)
-- Platform overview, Companies, Subscriptions
-- Monitoring, Analytics, Billing & Security
+- **Platform:** overview, tenant org setup, multi-tenant organizations (CRUD), users & access, permissions matrix, global settings, subscriptions, monitoring, analytics, billing
+- **HRMS modules:** full access to employees, attendance, leave, payroll, recruitment, reports, settings (under `/superadmin/hr/…`)
 
 ## Data (JSON in memory)
 

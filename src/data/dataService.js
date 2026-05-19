@@ -1,5 +1,6 @@
 import hrmsData from './hrmsData.json'
-import usersData from './users.json'
+import platformData from './platformData.json'
+import { syncOfficeLocationsFromBranches } from '../utils/organizationHelpers'
 
 /** Deep clone JSON so in-app edits never mutate source files */
 export function cloneJson(data) {
@@ -8,14 +9,41 @@ export function cloneJson(data) {
 
 /** Initial HRMS state loaded from src/data/hrmsData.json */
 export function getInitialHrmsState() {
-  return cloneJson(hrmsData)
+  const state = cloneJson(hrmsData)
+  if (state.branches?.length && state.attendancePolicy) {
+    state.attendancePolicy.officeLocations = syncOfficeLocationsFromBranches(
+      state.branches,
+      state.attendancePolicy.radiusMeters,
+    )
+  }
+  return state
 }
 
-/** Demo login accounts from src/data/users.json */
+/** Initial platform state (organizations, users, settings) */
+export function getInitialPlatformState() {
+  return cloneJson(platformData)
+}
+
+/** Demo login accounts (from platform data) */
 export function getUsers() {
-  return usersData.users
+  return getInitialPlatformState().users
 }
 
-export function findUserByCredentials(email, password) {
-  return usersData.users.find((u) => u.email === email && u.password === password) ?? null
+export function findUserByCredentials(email, password, usersList) {
+  const list = usersList ?? getUsers()
+  return (
+    list.find(
+      (u) =>
+        u.email?.toLowerCase() === email?.toLowerCase() &&
+        u.password === password &&
+        !u.blocked,
+    ) ?? null
+  )
+}
+
+/** Strip password before storing in auth session */
+export function toAuthUser(account) {
+  if (!account) return null
+  const { password, ...safe } = account
+  return safe
 }

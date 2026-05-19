@@ -19,6 +19,7 @@ export default function DocumentTemplates() {
     addDocumentTemplate,
     updateDocumentTemplate,
     deleteDocumentTemplate,
+    orgContext,
   } = useHrms()
 
   const canManage = user?.role === 'admin' || user?.role === 'superadmin'
@@ -150,6 +151,7 @@ export default function DocumentTemplates() {
         onClose={() => setPreviewTemplate(null)}
         template={previewTemplate ? normalizeTemplate(previewTemplate) : null}
         sampleEmployee={sampleEmployee}
+        orgContext={orgContext}
       />
 
       <GenerateDocumentModal
@@ -157,6 +159,7 @@ export default function DocumentTemplates() {
         onClose={() => setGenerateTemplate(null)}
         template={generateTemplate ? normalizeTemplate(generateTemplate) : null}
         employees={employees}
+        orgContext={orgContext}
         onGenerated={recordGeneratedDocument}
       />
 
@@ -165,6 +168,7 @@ export default function DocumentTemplates() {
         onClose={() => setFormOpen(false)}
         template={editingTemplate}
         sampleEmployee={sampleEmployee}
+        orgContext={orgContext}
         onSave={handleSaveTemplate}
       />
     </div>

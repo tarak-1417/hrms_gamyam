@@ -10,6 +10,7 @@ import {
   Shield,
   Settings,
   FileStack,
+  ScrollText,
 } from 'lucide-react'
 import HrLayout from './HrLayout'
 
@@ -25,6 +26,7 @@ const navItems = [
   { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
   { to: '/admin/roles', icon: Shield, label: 'Roles' },
   { to: '/admin/settings', icon: Settings, label: 'Settings' },
+  { to: '/admin/audit-logs', icon: ScrollText, label: 'Audit logs' },
 ]
 
 export default function AdminHrLayout() {

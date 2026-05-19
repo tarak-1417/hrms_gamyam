@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Plus, Upload } from 'lucide-react'
+import { Plus, Upload, Trash2 } from 'lucide-react'
+import { useAuth } from '../../hooks/useAuth'
 import ChartCard from '../../components/charts/ChartCard'
 import HiringPipelineChart from '../../components/charts/HiringPipelineChart'
 import Badge from '../../components/ui/Badge'
@@ -8,7 +9,10 @@ import BulkImportJobsModal from '../../components/hr/BulkImportJobsModal'
 import { useHrms } from '../../hooks/useHrms'
 
 export default function Recruitment() {
-  const { jobPostings, addJobPosting, bulkImportJobPostings, updateJobStatus } = useHrms()
+  const { jobPostings, addJobPosting, bulkImportJobPostings, updateJobStatus, softDeleteJobPosting } =
+    useHrms()
+  const { user } = useAuth()
+  const isSuperAdmin = user?.role === 'superadmin'
   const [postJobOpen, setPostJobOpen] = useState(false)
   const [importJobsOpen, setImportJobsOpen] = useState(false)
 
@@ -54,8 +58,23 @@ export default function Recruitment() {
             <p className="mt-2 text-lg font-bold text-primary">{job.applicants}</p>
             <p className="text-[10px] text-muted">applicants</p>
             <p className="mt-2 line-clamp-2 text-xs text-muted">{job.description}</p>
-            <div className="mt-3 flex items-center justify-between">
+            <div className="mt-3 flex items-center justify-between gap-2">
               <Badge status={job.status === 'active' ? 'active' : 'inactive'} />
+              <div className="flex items-center gap-2">
+              {isSuperAdmin && (
+                <button
+                  type="button"
+                  title="Move to recycle bin"
+                  onClick={() => {
+                    if (window.confirm(`Move "${job.title}" to the recycle bin?`)) {
+                      softDeleteJobPosting(job.id)
+                    }
+                  }}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
               {job.status === 'active' && (
                 <button
                   type="button"
@@ -74,6 +93,7 @@ export default function Recruitment() {
                   Resume
                 </button>
               )}
+              </div>
             </div>
           </div>
         ))}

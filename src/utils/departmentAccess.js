@@ -10,8 +10,14 @@ export function enrichDepartments(departments, employees) {
   })
 }
 
-function managerDepartmentName(user, departments) {
-  const byHead = departments.find((d) => d.head === user?.name)
+function managerDepartmentName(user, departments, employees = []) {
+  const emp = user?.employeeId
+    ? employees.find((e) => e.id === user.employeeId)
+    : employees.find((e) => e.name === user?.name)
+  if (emp?.department) return emp.department
+  const byHead = departments.find(
+    (d) => d.headEmployeeId === user?.employeeId || d.head === user?.name,
+  )
   if (byHead) return byHead.name
   return 'Engineering'
 }
@@ -24,7 +30,7 @@ export function getVisibleDepartments({ role, user, departments, employees }) {
   }
 
   if (role === 'manager') {
-    const deptName = managerDepartmentName(user, departments)
+    const deptName = managerDepartmentName(user, departments, employees)
     return enriched.filter((d) => d.name === deptName)
   }
 

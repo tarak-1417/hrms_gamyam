@@ -1,5 +1,106 @@
 {
   "nextId": 100,
+  "organization": {
+    "legalName": "Gamyam Technologies Pvt. Ltd.",
+    "displayName": "Gamyam Technologies",
+    "logoUrl": "",
+    "address": {
+      "line1": "Plot 12, Tech Park Road",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "country": "India",
+      "postalCode": "500081"
+    },
+    "contact": {
+      "phone": "+91 40 1234 5678",
+      "email": "hr@gamyam.com",
+      "website": "https://gamyam.com"
+    },
+    "tax": {
+      "gstin": "36AABCG1234A1Z5",
+      "pan": "AABCG1234A",
+      "tan": "HYDG12345A"
+    },
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "workHours": "9:00 AM – 6:00 PM",
+    "hrSignatory": "Sneha Reddy"
+  },
+  "designations": [
+    { "id": 1, "title": "Software Engineer", "department": "Engineering", "level": "L2", "status": "active" },
+    { "id": 2, "title": "Senior Developer", "department": "Engineering", "level": "L4", "status": "active" },
+    { "id": 3, "title": "Team Lead", "department": "Engineering", "level": "L5", "status": "active" },
+    { "id": 4, "title": "UI Designer", "department": "Engineering", "level": "L2", "status": "active" },
+    { "id": 5, "title": "HR Manager", "department": "Human Resources", "level": "L4", "status": "active" },
+    { "id": 6, "title": "HR Executive", "department": "Human Resources", "level": "L2", "status": "active" },
+    { "id": 7, "title": "Sales Executive", "department": "Sales", "level": "L2", "status": "active" },
+    { "id": 8, "title": "Sales Manager", "department": "Sales", "level": "L4", "status": "active" },
+    { "id": 9, "title": "Marketing Lead", "department": "Marketing", "level": "L4", "status": "active" },
+    { "id": 10, "title": "Accountant", "department": "Finance", "level": "L3", "status": "active" },
+    { "id": 11, "title": "Admin", "department": "Human Resources", "level": "L3", "status": "active" }
+  ],
+  "branches": [
+    {
+      "id": "br-hyd",
+      "name": "Hyderabad",
+      "code": "HYD",
+      "address": "HITEC City, Hyderabad, Telangana 500081",
+      "city": "Hyderabad",
+      "country": "India",
+      "timezone": "Asia/Kolkata",
+      "contactPhone": "+91 40 1234 5678",
+      "isHeadOffice": true,
+      "status": "active",
+      "latitude": 17.4486,
+      "longitude": 78.3908,
+      "radiusMeters": 500
+    },
+    {
+      "id": "br-razole",
+      "name": "Razole",
+      "code": "RAZ",
+      "address": "Razole, East Godavari District, Andhra Pradesh 533242",
+      "city": "Razole",
+      "country": "India",
+      "timezone": "Asia/Kolkata",
+      "contactPhone": "+91 884 123 4567",
+      "isHeadOffice": false,
+      "status": "active",
+      "latitude": 16.4792,
+      "longitude": 81.8397,
+      "radiusMeters": 500
+    },
+    {
+      "id": "br-dubai",
+      "name": "Dubai",
+      "code": "DXB",
+      "address": "Business Bay, Dubai, UAE",
+      "city": "Dubai",
+      "country": "UAE",
+      "timezone": "Asia/Dubai",
+      "contactPhone": "+971 4 123 4567",
+      "isHeadOffice": false,
+      "status": "active",
+      "latitude": null,
+      "longitude": null,
+      "radiusMeters": null
+    },
+    {
+      "id": "br-frankfurt",
+      "name": "Frankfurt",
+      "code": "FRA",
+      "address": "Mainzer Landstraße, Frankfurt, Germany",
+      "city": "Frankfurt",
+      "country": "Germany",
+      "timezone": "Europe/Berlin",
+      "contactPhone": "+49 69 1234 5678",
+      "isHeadOffice": false,
+      "status": "active",
+      "latitude": null,
+      "longitude": null,
+      "radiusMeters": null
+    }
+  ],
   "employees": [
     {
       "id": "EMP001",
@@ -11,7 +112,9 @@
       "joinDate": "2022-03-15",
       "phone": "+91 98765 43210",
       "address": "Hyderabad, Telangana",
-      "avatar": "AM"
+      "avatar": "AM",
+      "branchId": "br-hyd",
+      "managerId": "EMP007"
     },
     {
       "id": "EMP002",
@@ -23,7 +126,9 @@
       "joinDate": "2021-08-01",
       "phone": "+91 98765 43211",
       "address": "",
-      "avatar": "SR"
+      "avatar": "SR",
+      "branchId": "br-hyd",
+      "managerId": null
     },
     {
       "id": "EMP003",
@@ -35,7 +140,9 @@
       "joinDate": "2023-01-10",
       "phone": "+91 98765 43212",
       "address": "",
-      "avatar": "RV"
+      "avatar": "RV",
+      "branchId": "br-hyd",
+      "managerId": null
     },
     {
       "id": "EMP004",
@@ -47,7 +154,9 @@
       "joinDate": "2020-11-20",
       "phone": "+91 98765 43213",
       "address": "",
-      "avatar": "KN"
+      "avatar": "KN",
+      "branchId": "br-dubai",
+      "managerId": null
     },
     {
       "id": "EMP005",
@@ -59,7 +168,9 @@
       "joinDate": "2022-07-05",
       "phone": "+91 98765 43214",
       "address": "",
-      "avatar": "DP"
+      "avatar": "DP",
+      "branchId": "br-hyd",
+      "managerId": null
     },
     {
       "id": "EMP006",
@@ -71,7 +182,23 @@
       "joinDate": "2023-06-12",
       "phone": "+91 98765 43215",
       "address": "",
-      "avatar": "IG"
+      "avatar": "IG",
+      "branchId": "br-hyd",
+      "managerId": "EMP007"
+    },
+    {
+      "id": "EMP007",
+      "name": "Priya Sharma",
+      "email": "manager@gamyam.com",
+      "department": "Engineering",
+      "role": "Team Lead",
+      "status": "active",
+      "joinDate": "2019-05-01",
+      "phone": "+91 98765 43200",
+      "address": "Hyderabad, Telangana",
+      "avatar": "PS",
+      "branchId": "br-hyd",
+      "managerId": null
     }
   ],
   "leaveRequests": [
@@ -125,11 +252,11 @@
     { "id": 5, "employeeId": "EMP001", "date": "2026-05-18", "portalLogin": "09:00", "portalLogout": null, "checkIn": null, "checkOut": null, "workHours": "—", "status": "present" }
   ],
   "departments": [
-    { "id": 1, "name": "Engineering", "head": "Priya Sharma", "employees": 24 },
-    { "id": 2, "name": "Human Resources", "head": "Raj Kumar", "employees": 8 },
-    { "id": 3, "name": "Sales", "head": "Anita Desai", "employees": 18 },
-    { "id": 4, "name": "Marketing", "head": "Vikram Singh", "employees": 12 },
-    { "id": 5, "name": "Finance", "head": "Meera Patel", "employees": 10 }
+    { "id": 1, "name": "Engineering", "code": "ENG", "head": "Priya Sharma", "headEmployeeId": "EMP007", "status": "active", "employees": 24 },
+    { "id": 2, "name": "Human Resources", "code": "HR", "head": "Sneha Reddy", "headEmployeeId": "EMP002", "status": "active", "employees": 8 },
+    { "id": 3, "name": "Sales", "code": "SAL", "head": "Anita Desai", "headEmployeeId": null, "status": "active", "employees": 18 },
+    { "id": 4, "name": "Marketing", "code": "MKT", "head": "Vikram Singh", "headEmployeeId": null, "status": "active", "employees": 12 },
+    { "id": 5, "name": "Finance", "code": "FIN", "head": "Meera Patel", "headEmployeeId": null, "status": "active", "employees": 10 }
   ],
   "payrollRecords": [
     { "id": 1, "employeeId": "EMP001", "month": "April 2026", "basic": 65000, "allowances": 12000, "deductions": 8500, "net": 68500 },
@@ -274,5 +401,150 @@
       "body": "PRIVATE & CONFIDENTIAL\n\nDate: {{letter_date}}\n\nTo: {{employee_name}} ({{employee_id}})\nDepartment: {{department}}\n\nSubject: Warning Letter\n\nDear {{employee_name}},\n\nThis letter serves as a formal warning regarding: {{warning_reason}}.\n\nYou are required to take corrective action immediately. Failure to improve may lead to further disciplinary action up to and including termination.\n\nPlease acknowledge receipt by signing below.\n\nEmployee acknowledgment: _________________  Date: _________\n\n{{hr_signatory}}\nHuman Resources"
     }
   ],
-  "generatedDocuments": []
+  "generatedDocuments": [],
+  "auditNextId": 50,
+  "auditLogs": [
+    {
+      "id": 1,
+      "timestamp": "2026-05-19T08:30:00.000Z",
+      "actorName": "Super Admin",
+      "actorRole": "superadmin",
+      "actorEmail": "super@gamyam.com",
+      "action": "Signed in",
+      "category": "security",
+      "scope": "platform",
+      "targetType": "session",
+      "targetId": "",
+      "targetLabel": "Platform",
+      "details": "Super Admin portal"
+    },
+    {
+      "id": 2,
+      "timestamp": "2026-05-19T07:15:00.000Z",
+      "actorName": "Admin User",
+      "actorRole": "admin",
+      "actorEmail": "admin@gamyam.com",
+      "action": "Approved leave request",
+      "category": "leave",
+      "scope": "hr",
+      "targetType": "leave",
+      "targetId": "1",
+      "targetLabel": "Arjun Mehta",
+      "details": "Earned leave · 5 day(s)"
+    },
+    {
+      "id": 3,
+      "timestamp": "2026-05-19T06:40:00.000Z",
+      "actorName": "Admin User",
+      "actorRole": "admin",
+      "actorEmail": "admin@gamyam.com",
+      "action": "Created employee",
+      "category": "employee",
+      "scope": "hr",
+      "targetType": "employee",
+      "targetId": "EMP006",
+      "targetLabel": "Isha Gupta",
+      "details": "Engineering · UI Designer"
+    },
+    {
+      "id": 4,
+      "timestamp": "2026-05-18T14:20:00.000Z",
+      "actorName": "Super Admin",
+      "actorRole": "superadmin",
+      "actorEmail": "super@gamyam.com",
+      "action": "Updated organization profile",
+      "category": "organization",
+      "scope": "platform",
+      "targetType": "organization",
+      "targetId": "tenant",
+      "targetLabel": "Gamyam Technologies",
+      "details": "Company legal name and tax details"
+    },
+    {
+      "id": 5,
+      "timestamp": "2026-05-18T11:00:00.000Z",
+      "actorName": "Super Admin",
+      "actorRole": "superadmin",
+      "actorEmail": "super@gamyam.com",
+      "action": "Created platform organization",
+      "category": "platform",
+      "scope": "platform",
+      "targetType": "tenant",
+      "targetId": "org-acme",
+      "targetLabel": "Acme Corp",
+      "details": "Plan: Professional"
+    },
+    {
+      "id": 6,
+      "timestamp": "2026-05-17T16:45:00.000Z",
+      "actorName": "Admin User",
+      "actorRole": "admin",
+      "actorEmail": "admin@gamyam.com",
+      "action": "Posted job",
+      "category": "recruitment",
+      "scope": "hr",
+      "targetType": "job",
+      "targetId": "1",
+      "targetLabel": "Senior Developer",
+      "details": "Engineering · Hyderabad"
+    },
+    {
+      "id": 7,
+      "timestamp": "2026-05-17T10:30:00.000Z",
+      "actorName": "Priya Sharma",
+      "actorRole": "manager",
+      "actorEmail": "manager@gamyam.com",
+      "action": "Checked in",
+      "category": "attendance",
+      "scope": "hr",
+      "targetType": "employee",
+      "targetId": "EMP007",
+      "targetLabel": "Priya Sharma",
+      "details": "Geo check-in at Hyderabad office"
+    },
+    {
+      "id": 8,
+      "timestamp": "2026-05-16T09:00:00.000Z",
+      "actorName": "Admin User",
+      "actorRole": "admin",
+      "actorEmail": "admin@gamyam.com",
+      "action": "Updated payroll record",
+      "category": "payroll",
+      "scope": "hr",
+      "targetType": "employee",
+      "targetId": "EMP001",
+      "targetLabel": "Arjun Mehta",
+      "details": "April 2026 payslip adjusted"
+    },
+    {
+      "id": 9,
+      "timestamp": "2026-05-15T13:10:00.000Z",
+      "actorName": "Admin User",
+      "actorRole": "admin",
+      "actorEmail": "admin@gamyam.com",
+      "action": "Generated document",
+      "category": "document",
+      "scope": "hr",
+      "targetType": "document",
+      "targetId": "1",
+      "targetLabel": "Offer Letter — Arjun Mehta",
+      "details": "Template ID 1"
+    },
+    {
+      "id": 10,
+      "timestamp": "2026-05-14T08:00:00.000Z",
+      "actorName": "Super Admin",
+      "actorRole": "superadmin",
+      "actorEmail": "super@gamyam.com",
+      "action": "Reset user password",
+      "category": "user",
+      "scope": "platform",
+      "targetType": "user",
+      "targetId": "u-admin",
+      "targetLabel": "Admin User",
+      "details": "Password reset by Super Admin"
+    }
+  ],
+  "trashNextId": 10,
+  "trash": []
 }

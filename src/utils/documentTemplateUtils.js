@@ -1,8 +1,9 @@
 import { estimatePayroll } from '../store/hrmsHelpers'
+import { getCompanyMergeDefaults, getBranchById, getEmployeeManagerName } from './organizationHelpers'
 
-const COMPANY = {
+const FALLBACK_COMPANY = {
   name: 'Gamyam Technologies Pvt. Ltd.',
-  location: 'Razole, Andhra Pradesh',
+  location: 'Hyderabad, Telangana',
   hrSignatory: 'Sneha Reddy',
 }
 
@@ -107,14 +108,35 @@ export function formatInr(amount) {
   }).format(amount)
 }
 
-export function buildMergeData(employee, overrides = {}) {
+export function buildMergeData(employee, overrides = {}, orgContext = null) {
   const today = new Date().toISOString().slice(0, 10)
+  const organization = orgContext?.organization
+  const employees = orgContext?.employees || []
+  const branches = orgContext?.branches || []
+  const companyDefaults = organization
+    ? getCompanyMergeDefaults(organization, employees, branches)
+    : {
+        company_name: FALLBACK_COMPANY.name,
+        work_location: FALLBACK_COMPANY.location,
+        hr_signatory: FALLBACK_COMPANY.hrSignatory,
+        reporting_manager: 'Priya Sharma',
+      }
+
+  const branch = employee?.branchId ? getBranchById(branches, employee.branchId) : null
+  const workLocation = branch
+    ? `${branch.name}${branch.city ? `, ${branch.city}` : ''}`
+    : companyDefaults.work_location
+
+  const reportingManager = employee?.managerId
+    ? getEmployeeManagerName(employees, employee.managerId)
+    : companyDefaults.reporting_manager
+
   const base = {
     letter_date: today,
-    company_name: COMPANY.name,
-    work_location: COMPANY.location,
-    hr_signatory: COMPANY.hrSignatory,
-    reporting_manager: 'Priya Sharma',
+    company_name: companyDefaults.company_name,
+    work_location: workLocation,
+    hr_signatory: companyDefaults.hr_signatory,
+    reporting_manager: reportingManager,
     relieving_date: today,
     revision_effective_date: today,
     warning_reason: '',
@@ -140,15 +162,15 @@ export function buildMergeData(employee, overrides = {}) {
     role: employee.role,
     join_date: employee.joinDate,
     phone: employee.phone || '—',
-    address: employee.address || COMPANY.location,
+    address: employee.address || workLocation,
     annual_ctc: formatInr(annualCtc),
     monthly_net: formatInr(payroll.net),
     designation: employee.role,
   }
 }
 
-export function getDefaultFieldValues(template, employee) {
-  const merge = buildMergeData(employee)
+export function getDefaultFieldValues(template, employee, orgContext = null) {
+  const merge = buildMergeData(employee, {}, orgContext)
   const values = { ...merge }
   const fields = normalizeTemplate(template).fields ?? []
   fields.forEach((f) => {

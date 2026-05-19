@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Plus, Search, Eye, Pencil, Upload } from 'lucide-react'
+import { Plus, Search, Eye, Pencil, Upload, Trash2 } from 'lucide-react'
+import { useAuth } from '../../hooks/useAuth'
 import Card from '../../components/ui/Card'
 import FilterBar, { FilterSelect } from '../../components/ui/FilterBar'
 import Badge from '../../components/ui/Badge'
@@ -8,6 +9,7 @@ import EmployeeFormModal from '../../components/hr/EmployeeFormModal'
 import BulkImportEmployeesModal from '../../components/hr/BulkImportEmployeesModal'
 import { useHrms } from '../../hooks/useHrms'
 import { estimatePayrollByProfile } from '../../store/hrmsHelpers'
+import { getDepartmentNames, getDesignationTitles } from '../../utils/organizationHelpers'
 
 const emptyForm = {
   name: '',
@@ -18,6 +20,8 @@ const emptyForm = {
   address: '',
   joinDate: '',
   status: 'active',
+  branchId: '',
+  managerId: '',
   basic: '',
   allowances: '',
   deductions: '',
@@ -34,6 +38,8 @@ function buildEmployeePayload(form) {
     address: form.address,
     joinDate: form.joinDate || undefined,
     status: form.status,
+    branchId: form.branchId || null,
+    managerId: form.managerId || null,
     payrollInput: {
       basic: form.basic,
       allowances: form.allowances,
@@ -44,14 +50,6 @@ function buildEmployeePayload(form) {
 }
 
 
-const departments = [
-  'Engineering',
-  'Human Resources',
-  'Sales',
-  'Marketing',
-  'Finance',
-]
-
 export default function Employees() {
   const {
     searchQuery,
@@ -59,11 +57,25 @@ export default function Employees() {
     filterEmployees,
     employees: allEmployees,
     payrollRecords,
+    departments: deptRecords,
+    designations,
+    branches,
     addEmployee,
     bulkImportEmployees,
     updateEmployee,
     getEmployeeDetails,
+    softDeleteEmployee,
   } = useHrms()
+  const { user } = useAuth()
+  const isSuperAdmin = user?.role === 'superadmin'
+
+  const departmentNames = useMemo(() => {
+    const fromOrg = getDepartmentNames(deptRecords)
+    if (fromOrg.length) return fromOrg
+    return ['Engineering', 'Human Resources', 'Sales', 'Marketing', 'Finance']
+  }, [deptRecords])
+
+  const designationTitles = useMemo(() => getDesignationTitles(designations), [designations])
   const [modalOpen, setModalOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -76,9 +88,9 @@ export default function Employees() {
 
   const departmentOptions = useMemo(() => {
     const set = new Set(allEmployees.map((e) => e.department))
-    departments.forEach((d) => set.add(d))
+    departmentNames.forEach((d) => set.add(d))
     return ['all', ...Array.from(set).sort()]
-  }, [allEmployees])
+  }, [allEmployees, departmentNames])
 
   const roleOptions = useMemo(() => {
     const set = new Set(allEmployees.map((e) => e.role).filter(Boolean))
@@ -167,6 +179,8 @@ export default function Employees() {
       address: emp.address || '',
       joinDate: emp.joinDate || '',
       status: emp.status,
+      branchId: emp.branchId || '',
+      managerId: emp.managerId || '',
       basic: pay?.basic != null ? String(pay.basic) : '',
       allowances: pay?.allowances != null ? String(pay.allowances) : '',
       deductions: pay?.deductions != null ? String(pay.deductions) : '',
@@ -322,6 +336,24 @@ export default function Employees() {
                           <Pencil className="h-4 w-4" />
                           Edit
                         </button>
+                        {isSuperAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  `Move ${emp.name} to the recycle bin? Restore from Super Admin → Recycle bin.`,
+                                )
+                              ) {
+                                softDeleteEmployee(emp.id)
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Remove
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -352,7 +384,10 @@ export default function Employees() {
         editingId={editingId}
         form={form}
         setForm={setForm}
-        departments={departments}
+        departments={departmentNames}
+        designations={designationTitles}
+        branches={branches || []}
+        managers={allEmployees.filter((e) => e.status === 'active')}
         onSubmit={handleSubmit}
         autoPayrollPreview={autoPayrollPreview}
       />

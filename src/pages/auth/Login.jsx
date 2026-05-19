@@ -12,11 +12,18 @@ const ROLE_LABELS = {
   superadmin: 'Super Admin',
 }
 
-const DEMO_ACCOUNTS = getUsers().map((u) => ({
-  role: ROLE_LABELS[u.role] ?? u.role,
-  email: u.email,
-  password: u.password,
-}))
+/** One quick-demo tile per portal role (avoids duplicate "HR Admin" labels) */
+const DEMO_PORTAL_ROLES = ['superadmin', 'admin', 'manager', 'employee']
+
+const DEMO_ACCOUNTS = DEMO_PORTAL_ROLES.map((role) => {
+  const user = getUsers().find((u) => u.role === role && !u.blocked)
+  if (!user) return null
+  return {
+    role: ROLE_LABELS[role] ?? role,
+    email: user.email,
+    password: user.password,
+  }
+}).filter(Boolean)
 
 const FEATURES = [
   { icon: Users, label: 'Employee management' },
@@ -185,7 +192,7 @@ export default function Login() {
               <div className="mt-4 grid gap-3 grid-cols-2">
                 {DEMO_ACCOUNTS.map((account) => (
                   <button
-                    key={account.role}
+                    key={account.email}
                     type="button"
                     onClick={() => fillDemo(account)}
                     className="group rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 py-3.5 text-left transition hover:border-primary/40 hover:bg-primary-light hover:shadow-sm"

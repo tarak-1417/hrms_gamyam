@@ -10,7 +10,8 @@
       "email": "manager@gamyam.com",
       "password": "mgr123",
       "role": "manager",
-      "name": "Priya Sharma"
+      "name": "Priya Sharma",
+      "employeeId": "EMP007"
     },
     {
       "email": "arjun@company.com",

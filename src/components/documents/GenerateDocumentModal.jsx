@@ -14,6 +14,7 @@ export default function GenerateDocumentModal({
   onClose,
   template,
   employees,
+  orgContext,
   onGenerated,
 }) {
   const [employeeId, setEmployeeId] = useState('')
@@ -27,13 +28,13 @@ export default function GenerateDocumentModal({
     if (!open || !template) return
     const emp = employees[0]
     setEmployeeId(emp?.id ?? '')
-    setFieldValues(getDefaultFieldValues(template, emp))
-  }, [open, template, employees])
+    setFieldValues(getDefaultFieldValues(template, emp, orgContext))
+  }, [open, template, employees, orgContext])
 
   useEffect(() => {
     if (!selected || !template) return
-    setFieldValues(getDefaultFieldValues(template, selected))
-  }, [employeeId, selected, template])
+    setFieldValues(getDefaultFieldValues(template, selected, orgContext))
+  }, [employeeId, selected, template, orgContext])
 
   const mergeData = useMemo(() => fieldValues, [fieldValues])
   const content = template ? renderTemplate(template.body, mergeData) : ''

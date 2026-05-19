@@ -5,7 +5,7 @@ import FloatingAiAssistant from '../components/ai/FloatingAiAssistant'
 import Toast from '../components/ui/Toast'
 import useMobileNav from '../hooks/useMobileNav'
 
-export default function HrLayout({ navItems, portalLabel }) {
+export default function HrLayout({ navItems, navSections, portalLabel }) {
   const nav = useMobileNav()
 
   return (
@@ -20,6 +20,7 @@ export default function HrLayout({ navItems, portalLabel }) {
       )}
       <HrSidebar
         navItems={navItems}
+        navSections={navSections}
         portalLabel={portalLabel}
         mobileOpen={nav.open}
         onClose={nav.close}

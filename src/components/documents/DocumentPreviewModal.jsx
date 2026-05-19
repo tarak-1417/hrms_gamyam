@@ -2,10 +2,19 @@ import Modal from '../ui/Modal'
 import DocumentPreview from './DocumentPreview'
 import { getDefaultFieldValues, renderTemplate } from '../../utils/documentTemplateUtils'
 
-export default function DocumentPreviewModal({ open, onClose, template, sampleEmployee }) {
+export default function DocumentPreviewModal({
+  open,
+  onClose,
+  template,
+  sampleEmployee,
+  orgContext,
+}) {
   if (!template) return null
 
-  const content = renderTemplate(template.body, getDefaultFieldValues(template, sampleEmployee))
+  const content = renderTemplate(
+    template.body,
+    getDefaultFieldValues(template, sampleEmployee, orgContext),
+  )
 
   return (
     <Modal open={open} onClose={onClose} title={template.title} wide>

@@ -5,7 +5,12 @@ import DatePicker from '../../components/ui/DatePicker'
 import Badge from '../../components/ui/Badge'
 import { useAuth } from '../../hooks/useAuth'
 import { useHrms } from '../../hooks/useHrms'
-import { formatDisplayDate } from '../../utils/timeUtils'
+import {
+  formatDisplayDate,
+  formatLeaveDateRange,
+  formatLeaveDuration,
+  HALF_DAY_PERIODS,
+} from '../../utils/timeUtils'
 
 const HOLIDAY_FILTERS = [
   { id: 'all', label: 'All' },
@@ -31,7 +36,16 @@ export default function EmployeeLeave() {
     optionalHolidayClaims = [],
   } = useHrms()
 
-  const [form, setForm] = useState({ type: 'Casual Leave', from: '', to: '', reason: '' })
+  const [form, setForm] = useState({
+    type: 'Casual Leave',
+    durationType: 'full',
+    halfDayPeriod: 'first_half',
+    from: '',
+    to: '',
+    reason: '',
+  })
+
+  const isHalfDay = form.durationType === 'half'
   const [holidayFilter, setHolidayFilter] = useState('all')
   const [activeTab, setActiveTab] = useState('calendar')
 
@@ -68,13 +82,35 @@ export default function EmployeeLeave() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    const from = form.from
+    const to = isHalfDay ? form.from : form.to
     submitLeave({
-      ...form,
+      type: form.type,
+      from,
+      to,
+      reason: form.reason,
+      durationType: form.durationType,
+      halfDayPeriod: isHalfDay ? form.halfDayPeriod : undefined,
       employeeId: user.employeeId,
       employeeName: user.name,
     })
-    setForm({ type: 'Casual Leave', from: '', to: '', reason: '' })
+    setForm({
+      type: 'Casual Leave',
+      durationType: 'full',
+      halfDayPeriod: 'first_half',
+      from: '',
+      to: '',
+      reason: '',
+    })
     setActiveTab('requests')
+  }
+
+  const setDurationType = (durationType) => {
+    setForm((prev) => ({
+      ...prev,
+      durationType,
+      to: durationType === 'half' ? prev.from : prev.to,
+    }))
   }
 
   const tabs = [
@@ -233,6 +269,38 @@ export default function EmployeeLeave() {
         <Card title="Apply for Leave">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
+              <label className="block text-sm font-medium text-foreground">Duration</label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDurationType('full')}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    !isHalfDay
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'border border-border bg-white text-muted hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  Full day
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDurationType('half')}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    isHalfDay
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'border border-border bg-white text-muted hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  Half day
+                </button>
+              </div>
+              {isHalfDay && (
+                <p className="mt-2 text-xs text-muted">
+                  Half-day leave counts as 0.5 day against your balance.
+                </p>
+              )}
+            </div>
+            <div>
               <label className="block text-sm font-medium text-foreground">Leave type</label>
               <select
                 value={form.type}
@@ -250,24 +318,50 @@ export default function EmployeeLeave() {
                 </p>
               )}
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <DatePicker
-                label="From"
-                required
-                value={form.from}
-                onChange={(from) => setForm({ ...form, from })}
-                holidays={sortedHolidays}
-                max={form.to || undefined}
-              />
-              <DatePicker
-                label="To"
-                required
-                value={form.to}
-                onChange={(to) => setForm({ ...form, to })}
-                holidays={sortedHolidays}
-                min={form.from || undefined}
-              />
-            </div>
+            {isHalfDay ? (
+              <>
+                <DatePicker
+                  label="Date"
+                  required
+                  value={form.from}
+                  onChange={(from) => setForm({ ...form, from, to: from })}
+                  holidays={sortedHolidays}
+                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Half-day session</label>
+                  <select
+                    value={form.halfDayPeriod}
+                    onChange={(e) => setForm({ ...form, halfDayPeriod: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-border px-4 py-2 text-sm"
+                  >
+                    {Object.values(HALF_DAY_PERIODS).map((p) => (
+                      <option key={p.value} value={p.value}>
+                        {p.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <DatePicker
+                  label="From"
+                  required
+                  value={form.from}
+                  onChange={(from) => setForm({ ...form, from })}
+                  holidays={sortedHolidays}
+                  max={form.to || undefined}
+                />
+                <DatePicker
+                  label="To"
+                  required
+                  value={form.to}
+                  onChange={(to) => setForm({ ...form, to })}
+                  holidays={sortedHolidays}
+                  min={form.from || undefined}
+                />
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-foreground">Reason</label>
               <textarea
@@ -303,8 +397,7 @@ export default function EmployeeLeave() {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-foreground">{leave.type}</p>
                     <p className="text-sm text-muted">
-                      {formatDisplayDate(leave.from)} – {formatDisplayDate(leave.to)} · {leave.days} day
-                      {leave.days !== 1 ? 's' : ''}
+                      {formatLeaveDateRange(leave)} · {formatLeaveDuration(leave)}
                     </p>
                     {leave.reason && (
                       <p className="mt-1 text-xs text-muted">{leave.reason}</p>

@@ -20,6 +20,41 @@ export function formatDisplayDate(dateStr) {
   return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+export const HALF_DAY_PERIODS = {
+  first_half: { value: 'first_half', label: 'First half (morning)' },
+  second_half: { value: 'second_half', label: 'Second half (afternoon)' },
+}
+
+/** Calendar days between from/to inclusive; half-day returns 0.5 */
+export function calculateLeaveDays({ from, to, durationType = 'full' }) {
+  if (durationType === 'half') return 0.5
+  if (!from || !to) return 0
+  const start = new Date(from + 'T12:00:00')
+  const end = new Date(to + 'T12:00:00')
+  return Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1)
+}
+
+export function formatLeaveDuration(leave) {
+  const days = leave?.days ?? 0
+  const dayLabel = days === 1 ? 'day' : 'days'
+  if (leave?.durationType === 'half') {
+    const period =
+      leave.halfDayPeriod === 'second_half'
+        ? HALF_DAY_PERIODS.second_half.label
+        : HALF_DAY_PERIODS.first_half.label
+    return `Half day · ${period}`
+  }
+  return `${days} ${dayLabel}`
+}
+
+export function formatLeaveDateRange(leave) {
+  if (!leave?.from) return '—'
+  if (leave.durationType === 'half' || leave.from === leave.to) {
+    return formatDisplayDate(leave.from)
+  }
+  return `${formatDisplayDate(leave.from)} – ${formatDisplayDate(leave.to)}`
+}
+
 export function parseTimeToMinutes(timeStr) {
   if (!timeStr || timeStr === '-') return null
   const [h, m] = timeStr.split(':').map(Number)

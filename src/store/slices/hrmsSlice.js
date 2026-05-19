@@ -11,6 +11,7 @@ import {
   attendanceStatus,
   resolvePayroll,
 } from '../hrmsHelpers'
+import { calculateLeaveDays } from '../../utils/timeUtils'
 
 function prependActivity(state, type, user, action) {
   state.activityFeed = [
@@ -41,10 +42,26 @@ const hrmsSlice = createSlice({
       )
     },
     submitLeave(state, action) {
-      const { type, from, to, reason, employeeId, employeeName } = action.payload
-      const start = new Date(from)
-      const end = new Date(to)
-      const days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1)
+      const {
+        type,
+        from,
+        to,
+        reason,
+        employeeId,
+        employeeName,
+        durationType = 'full',
+        halfDayPeriod = 'first_half',
+      } = action.payload
+
+      const isHalfDay = durationType === 'half'
+      const leaveFrom = from
+      const leaveTo = isHalfDay ? from : to
+      const days = calculateLeaveDays({
+        from: leaveFrom,
+        to: leaveTo,
+        durationType,
+      })
+
       const id = state.nextId
       state.nextId += 1
       state.leaveRequests.push({
@@ -52,13 +69,19 @@ const hrmsSlice = createSlice({
         employeeId,
         employeeName,
         type,
-        from,
-        to,
+        from: leaveFrom,
+        to: leaveTo,
         days,
+        durationType: isHalfDay ? 'half' : 'full',
+        ...(isHalfDay ? { halfDayPeriod } : {}),
         status: 'pending',
         reason,
       })
-      prependActivity(state, 'leave', employeeName, `requested ${days} day(s) ${type}`)
+
+      const durationNote = isHalfDay
+        ? `half day (${halfDayPeriod === 'second_half' ? 'afternoon' : 'morning'})`
+        : `${days} day(s)`
+      prependActivity(state, 'leave', employeeName, `requested ${durationNote} ${type}`)
     },
     addEmployee(state, action) {
       const form = action.payload

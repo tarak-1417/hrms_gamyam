@@ -2,6 +2,7 @@ import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import { useHrms } from '../../hooks/useHrms'
 import { useAuth } from '../../hooks/useAuth'
+import { formatLeaveDateRange, formatLeaveDuration } from '../../utils/timeUtils'
 
 export default function HrLeave() {
   const { leaveRequests, updateLeaveStatus } = useHrms()
@@ -26,7 +27,7 @@ export default function HrLeave() {
                 <div>
                   <p className="font-semibold text-foreground">{leave.employeeName}</p>
                   <p className="text-sm text-muted">
-                    {leave.type} · {leave.from} to {leave.to} · {leave.days} days
+                    {leave.type} · {formatLeaveDateRange(leave)} · {formatLeaveDuration(leave)}
                   </p>
                   <p className="mt-1 text-sm text-muted">{leave.reason}</p>
                 </div>

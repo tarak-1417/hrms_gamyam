@@ -2,6 +2,7 @@ import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import { useHrms } from '../../hooks/useHrms'
 import { useAuth } from '../../hooks/useAuth'
+import { formatLeaveDateRange, formatLeaveDuration } from '../../utils/timeUtils'
 
 export default function Leave() {
   const { leaveRequests, updateLeaveStatus } = useHrms()
@@ -27,10 +28,8 @@ export default function Leave() {
               <tr key={leave.id}>
                 <td className="py-4 font-medium text-foreground">{leave.employeeName}</td>
                 <td className="py-4">{leave.type}</td>
-                <td className="py-4">
-                  {leave.from} – {leave.to}
-                </td>
-                <td className="py-4">{leave.days}</td>
+                <td className="py-4">{formatLeaveDateRange(leave)}</td>
+                <td className="py-4">{formatLeaveDuration(leave)}</td>
                 <td className="py-4 text-muted">{leave.reason}</td>
                 <td className="py-4">
                   <Badge status={leave.status} />

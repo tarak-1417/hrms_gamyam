@@ -1,0 +1,66 @@
+{
+  "attendanceTrend": [
+    { "month": "Jan", "present": 92, "late": 5, "absent": 3 },
+    { "month": "Feb", "present": 94, "late": 4, "absent": 2 },
+    { "month": "Mar", "present": 91, "late": 6, "absent": 3 },
+    { "month": "Apr", "present": 95, "late": 3, "absent": 2 },
+    { "month": "May", "present": 93, "late": 5, "absent": 2 }
+  ],
+  "departmentHeadcount": [
+    { "name": "Engineering", "count": 24, "fill": "#f58220" },
+    { "name": "Sales", "count": 18, "fill": "#d96d12" },
+    { "name": "Marketing", "count": 12, "fill": "#f5a623" },
+    { "name": "Finance", "count": 10, "fill": "#ffb366" },
+    { "name": "HR", "count": 8, "fill": "#b85a0e" }
+  ],
+  "leaveByType": [
+    { "name": "Casual", "value": 42, "fill": "#f58220" },
+    { "name": "Sick", "value": 28, "fill": "#d96d12" },
+    { "name": "Earned", "value": 35, "fill": "#f5a623" },
+    { "name": "Unpaid", "value": 8, "fill": "#e0e0e0" }
+  ],
+  "payrollMonthly": [
+    { "month": "Jan", "amount": 42 },
+    { "month": "Feb", "amount": 44 },
+    { "month": "Mar", "amount": 43 },
+    { "month": "Apr", "amount": 46 },
+    { "month": "May", "amount": 48 }
+  ],
+  "hiringPipeline": [
+    { "stage": "Applied", "count": 48 },
+    { "stage": "Screening", "count": 32 },
+    { "stage": "Interview", "count": 18 },
+    { "stage": "Offer", "count": 8 },
+    { "stage": "Hired", "count": 5 }
+  ],
+  "platformGrowth": [
+    { "month": "Jan", "companies": 12, "users": 340 },
+    { "month": "Feb", "companies": 14, "users": 410 },
+    { "month": "Mar", "companies": 16, "users": 485 },
+    { "month": "Apr", "companies": 19, "users": 560 },
+    { "month": "May", "companies": 22, "users": 648 }
+  ],
+  "activityFeed": [
+    { "id": 1, "type": "hire", "user": "Isha Gupta", "action": "joined Engineering", "time": "2 hours ago" },
+    { "id": 2, "type": "leave", "user": "Rahul Verma", "action": "requested 5 days earned leave", "time": "4 hours ago" },
+    { "id": 3, "type": "announcement", "user": "HR Team", "action": "posted company policy update", "time": "Yesterday" },
+    { "id": 4, "type": "attendance", "user": "Dev Patel", "action": "marked late check-in", "time": "Yesterday" },
+    { "id": 5, "type": "payroll", "user": "Finance", "action": "April payroll processed", "time": "2 days ago" }
+  ],
+  "managerKpis": {
+    "teamSize": 24,
+    "presentToday": 22,
+    "pendingApprovals": 7,
+    "openPositions": 3,
+    "avgAttendance": 94,
+    "leaveUtilization": 68
+  },
+  "superAdminKpis": {
+    "totalCompanies": 22,
+    "activeSubscriptions": 19,
+    "monthlyRevenue": 4.8,
+    "systemUptime": 99.9,
+    "activeUsers": 648,
+    "supportTickets": 14
+  }
+}

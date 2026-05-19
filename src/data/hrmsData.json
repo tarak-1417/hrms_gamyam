@@ -1,0 +1,278 @@
+{
+  "nextId": 100,
+  "employees": [
+    {
+      "id": "EMP001",
+      "name": "Arjun Mehta",
+      "email": "arjun@company.com",
+      "department": "Engineering",
+      "role": "Senior Developer",
+      "status": "active",
+      "joinDate": "2022-03-15",
+      "phone": "+91 98765 43210",
+      "address": "Hyderabad, Telangana",
+      "avatar": "AM"
+    },
+    {
+      "id": "EMP002",
+      "name": "Sneha Reddy",
+      "email": "sneha@company.com",
+      "department": "Human Resources",
+      "role": "HR Manager",
+      "status": "active",
+      "joinDate": "2021-08-01",
+      "phone": "+91 98765 43211",
+      "address": "",
+      "avatar": "SR"
+    },
+    {
+      "id": "EMP003",
+      "name": "Rahul Verma",
+      "email": "rahul@company.com",
+      "department": "Sales",
+      "role": "Sales Executive",
+      "status": "active",
+      "joinDate": "2023-01-10",
+      "phone": "+91 98765 43212",
+      "address": "",
+      "avatar": "RV"
+    },
+    {
+      "id": "EMP004",
+      "name": "Kavya Nair",
+      "email": "kavya@company.com",
+      "department": "Marketing",
+      "role": "Marketing Lead",
+      "status": "on-leave",
+      "joinDate": "2020-11-20",
+      "phone": "+91 98765 43213",
+      "address": "",
+      "avatar": "KN"
+    },
+    {
+      "id": "EMP005",
+      "name": "Dev Patel",
+      "email": "dev@company.com",
+      "department": "Finance",
+      "role": "Accountant",
+      "status": "active",
+      "joinDate": "2022-07-05",
+      "phone": "+91 98765 43214",
+      "address": "",
+      "avatar": "DP"
+    },
+    {
+      "id": "EMP006",
+      "name": "Isha Gupta",
+      "email": "isha@company.com",
+      "department": "Engineering",
+      "role": "UI Designer",
+      "status": "active",
+      "joinDate": "2023-06-12",
+      "phone": "+91 98765 43215",
+      "address": "",
+      "avatar": "IG"
+    }
+  ],
+  "leaveRequests": [
+    {
+      "id": 1,
+      "employeeId": "EMP001",
+      "employeeName": "Arjun Mehta",
+      "type": "Casual Leave",
+      "from": "2026-05-20",
+      "to": "2026-05-22",
+      "days": 3,
+      "status": "pending",
+      "reason": "Family function"
+    },
+    {
+      "id": 2,
+      "employeeId": "EMP004",
+      "employeeName": "Kavya Nair",
+      "type": "Sick Leave",
+      "from": "2026-05-15",
+      "to": "2026-05-18",
+      "days": 4,
+      "status": "pending",
+      "reason": "Medical recovery"
+    },
+    {
+      "id": 3,
+      "employeeId": "EMP003",
+      "employeeName": "Rahul Verma",
+      "type": "Earned Leave",
+      "from": "2026-06-01",
+      "to": "2026-06-05",
+      "days": 5,
+      "status": "pending",
+      "reason": "Vacation"
+    }
+  ],
+  "attendanceRecords": [
+    { "id": 1, "employeeId": "EMP001", "date": "2026-05-18", "checkIn": "09:02", "checkOut": "18:15", "status": "present" },
+    { "id": 2, "employeeId": "EMP002", "date": "2026-05-18", "checkIn": "08:55", "checkOut": "17:45", "status": "present" },
+    { "id": 3, "employeeId": "EMP003", "date": "2026-05-18", "checkIn": "09:30", "checkOut": "18:00", "status": "late" },
+    { "id": 4, "employeeId": "EMP004", "date": "2026-05-18", "checkIn": "-", "checkOut": "-", "status": "on-leave" },
+    { "id": 5, "employeeId": "EMP005", "date": "2026-05-18", "checkIn": "09:00", "checkOut": "18:30", "status": "present" },
+    { "id": 6, "employeeId": "EMP006", "date": "2026-05-18", "checkIn": "09:05", "checkOut": "18:10", "status": "present" }
+  ],
+  "timeLogs": [
+    { "id": 1, "employeeId": "EMP001", "date": "2026-05-14", "portalLogin": "08:58", "portalLogout": "18:05", "checkIn": "09:00", "checkOut": "18:00", "workHours": "9h 0m", "status": "present" },
+    { "id": 2, "employeeId": "EMP001", "date": "2026-05-15", "portalLogin": "09:01", "portalLogout": "18:12", "checkIn": "09:05", "checkOut": "18:20", "workHours": "9h 15m", "status": "present" },
+    { "id": 3, "employeeId": "EMP001", "date": "2026-05-16", "portalLogin": "09:20", "portalLogout": "18:08", "checkIn": "09:45", "checkOut": "18:10", "workHours": "8h 25m", "status": "late" },
+    { "id": 4, "employeeId": "EMP001", "date": "2026-05-17", "portalLogin": "08:55", "portalLogout": "18:00", "checkIn": "09:00", "checkOut": "18:00", "workHours": "9h 0m", "status": "present", "daySummary": "Sprint planning, code review, and API integration for payroll module.", "tasksCompleted": ["Submit timesheet for week 20"] },
+    { "id": 5, "employeeId": "EMP001", "date": "2026-05-18", "portalLogin": "09:00", "portalLogout": null, "checkIn": null, "checkOut": null, "workHours": "—", "status": "present" }
+  ],
+  "departments": [
+    { "id": 1, "name": "Engineering", "head": "Priya Sharma", "employees": 24 },
+    { "id": 2, "name": "Human Resources", "head": "Raj Kumar", "employees": 8 },
+    { "id": 3, "name": "Sales", "head": "Anita Desai", "employees": 18 },
+    { "id": 4, "name": "Marketing", "head": "Vikram Singh", "employees": 12 },
+    { "id": 5, "name": "Finance", "head": "Meera Patel", "employees": 10 }
+  ],
+  "payrollRecords": [
+    { "id": 1, "employeeId": "EMP001", "month": "April 2026", "basic": 65000, "allowances": 12000, "deductions": 8500, "net": 68500 },
+    { "id": 2, "employeeId": "EMP002", "month": "April 2026", "basic": 75000, "allowances": 15000, "deductions": 10200, "net": 79800 },
+    { "id": 3, "employeeId": "EMP003", "month": "April 2026", "basic": 45000, "allowances": 8000, "deductions": 5200, "net": 47800 },
+    { "id": 4, "employeeId": "EMP004", "month": "April 2026", "basic": 72000, "allowances": 14000, "deductions": 9800, "net": 76200 },
+    { "id": 5, "employeeId": "EMP005", "month": "April 2026", "basic": 52000, "allowances": 9000, "deductions": 6100, "net": 54900 },
+    { "id": 6, "employeeId": "EMP006", "month": "April 2026", "basic": 48000, "allowances": 8500, "deductions": 5500, "net": 51000 }
+  ],
+  "employeeTasks": [
+    { "id": 1, "title": "Complete security training", "due": "2026-05-22", "priority": "High", "done": false },
+    { "id": 2, "title": "Submit timesheet for week 20", "due": "2026-05-19", "priority": "Medium", "done": true },
+    { "id": 3, "title": "Update project status in Jira", "due": "2026-05-21", "priority": "Low", "done": false }
+  ],
+  "jobPostings": [
+    { "id": 1, "title": "Senior Developer", "department": "Engineering", "location": "Hyderabad", "employmentType": "Full-time", "salaryRange": "12–18 LPA", "description": "Build and scale our HRMS platform with React and Node.", "applicants": 24, "status": "active", "postedAt": "2026-05-10" },
+    { "id": 2, "title": "HR Executive", "department": "Human Resources", "location": "Hyderabad", "employmentType": "Full-time", "salaryRange": "4–6 LPA", "description": "Support recruitment, onboarding, and employee relations.", "applicants": 18, "status": "active", "postedAt": "2026-05-08" },
+    { "id": 3, "title": "Sales Manager", "department": "Sales", "location": "Remote", "employmentType": "Full-time", "salaryRange": "8–12 LPA", "description": "Lead the enterprise sales team and hit quarterly targets.", "applicants": 12, "status": "paused", "postedAt": "2026-04-28" }
+  ],
+  "activityFeed": [
+    { "id": 1, "type": "hire", "user": "Isha Gupta", "action": "joined Engineering", "time": "2 hours ago" },
+    { "id": 2, "type": "leave", "user": "Rahul Verma", "action": "requested 5 days earned leave", "time": "4 hours ago" },
+    { "id": 3, "type": "announcement", "user": "HR Team", "action": "posted company policy update", "time": "Yesterday" },
+    { "id": 4, "type": "attendance", "user": "Dev Patel", "action": "marked late check-in", "time": "Yesterday" },
+    { "id": 5, "type": "payroll", "user": "Finance", "action": "April payroll processed", "time": "2 days ago" }
+  ],
+  "employeeStats": {
+    "leaveBalance": { "casual": 8, "sick": 6, "earned": 12 },
+    "attendanceThisMonth": 18,
+    "workingDays": 22,
+    "lastPayslip": "April 2026"
+  },
+  "attendancePolicy": {
+    "geoCheckInEnabled": true,
+    "requireGeoForCheckIn": true,
+    "radiusMeters": 500,
+    "officeLocations": [
+      {
+        "id": "hq-razole",
+        "name": "Gamyam Office – Razole",
+        "address": "Razole, East Godavari District, Andhra Pradesh 533242",
+        "latitude": 16.4792,
+        "longitude": 81.8397,
+        "radiusMeters": 500
+      }
+    ]
+  },
+  "leavePolicy": {
+    "year": 2026,
+    "optionalHolidayLimit": 2,
+    "optionalHolidayNote": "You may avail up to 2 optional holidays per calendar year. Apply at least 3 working days in advance.",
+    "restrictedHolidayNote": "National and festival holidays are company-wide offs. No leave application required."
+  },
+  "holidays": [
+    { "id": 1, "date": "2026-01-26", "name": "Republic Day", "type": "national" },
+    { "id": 2, "date": "2026-03-14", "name": "Holi", "type": "festival" },
+    { "id": 3, "date": "2026-03-31", "name": "Ugadi", "type": "festival" },
+    { "id": 4, "date": "2026-04-06", "name": "Ram Navami", "type": "festival" },
+    { "id": 5, "date": "2026-04-14", "name": "Dr. Ambedkar Jayanti", "type": "national" },
+    { "id": 6, "date": "2026-05-01", "name": "May Day", "type": "national" },
+    { "id": 7, "date": "2026-06-07", "name": "Eid-ul-Adha", "type": "festival" },
+    { "id": 8, "date": "2026-08-15", "name": "Independence Day", "type": "national" },
+    { "id": 9, "date": "2026-08-26", "name": "Janmashtami", "type": "festival" },
+    { "id": 10, "date": "2026-09-05", "name": "Milad-un-Nabi", "type": "festival" },
+    { "id": 11, "date": "2026-10-02", "name": "Gandhi Jayanti", "type": "national" },
+    { "id": 12, "date": "2026-10-20", "name": "Dussehra", "type": "festival" },
+    { "id": 13, "date": "2026-11-08", "name": "Diwali", "type": "festival" },
+    { "id": 14, "date": "2026-11-09", "name": "Diwali (Day 2)", "type": "festival" },
+    { "id": 15, "date": "2026-11-27", "name": "Guru Nanak Jayanti", "type": "festival" },
+    { "id": 16, "date": "2026-12-25", "name": "Christmas", "type": "national" },
+    { "id": 17, "date": "2026-01-01", "name": "New Year's Day", "type": "optional" },
+    { "id": 18, "date": "2026-04-01", "name": "Bank Holiday", "type": "optional" },
+    { "id": 19, "date": "2026-07-06", "name": "Muharram", "type": "optional" },
+    { "id": 20, "date": "2026-12-31", "name": "Year-end Optional Off", "type": "optional" }
+  ],
+  "optionalHolidayClaims": [
+    { "id": 1, "employeeId": "EMP001", "holidayId": 17, "status": "availed", "year": 2026 }
+  ],
+  "documentTemplates": [
+    {
+      "id": 1,
+      "title": "Offer Letter",
+      "category": "hiring",
+      "description": "Formal job offer with role, CTC, and joining details.",
+      "updatedAt": "2026-04-15",
+      "body": "GAMYAM TECHNOLOGIES PVT. LTD.\nHyderabad, Telangana\n\nDate: {{letter_date}}\n\nDear {{employee_name}},\n\nWe are pleased to offer you the position of {{role}} in our {{department}} department at Gamyam Technologies.\n\nEmployee ID (on joining): {{employee_id}}\nWork location: {{work_location}}\nDate of joining: {{join_date}}\nAnnual CTC: {{annual_ctc}}\nReporting to: {{reporting_manager}}\n\nThis offer is subject to satisfactory background verification and submission of required documents on or before your joining date.\n\nWe look forward to welcoming you to the team.\n\nSincerely,\n{{hr_signatory}}\nHuman Resources\nGamyam Technologies"
+    },
+    {
+      "id": 2,
+      "title": "Appointment Letter",
+      "category": "hiring",
+      "description": "Confirms employment terms after the candidate accepts the offer.",
+      "updatedAt": "2026-04-10",
+      "body": "GAMYAM TECHNOLOGIES PVT. LTD.\n\nDate: {{letter_date}}\n\nTo,\n{{employee_name}}\n{{employee_email}}\n\nSubject: Appointment Letter – {{role}}\n\nDear {{employee_name}},\n\nWith reference to your acceptance of our offer dated {{letter_date}}, you are hereby appointed as {{role}} ({{department}}) with effect from {{join_date}}.\n\nYour employment will be governed by company policies, including leave, attendance, and code of conduct, as amended from time to time.\n\nWork hours: 9:00 AM – 6:00 PM (Monday–Friday)\nWork location: {{work_location}}\n\nPlease sign and return a copy of this letter as token of your acceptance.\n\nFor Gamyam Technologies,\n{{hr_signatory}}\nHR Manager"
+    },
+    {
+      "id": 3,
+      "title": "Employment Contract",
+      "category": "employment",
+      "description": "Standard full-time employment agreement template.",
+      "updatedAt": "2026-03-20",
+      "body": "EMPLOYMENT AGREEMENT\n\nThis Agreement is entered on {{letter_date}} between Gamyam Technologies Pvt. Ltd. (\"Company\") and {{employee_name}} (\"Employee\"), ID {{employee_id}}.\n\n1. Position: {{role}}, {{department}} department.\n2. Commencement: {{join_date}}.\n3. Compensation: Annual CTC {{annual_ctc}} as per company payroll policy.\n4. Confidentiality: Employee shall not disclose proprietary information.\n5. Termination: Either party may terminate with notice as per applicable labour laws and company policy.\n\nEmployee signature: _________________    Date: _________\n\nFor Company: {{hr_signatory}}"
+    },
+    {
+      "id": 4,
+      "title": "NDA & Confidentiality",
+      "category": "compliance",
+      "description": "Non-disclosure agreement for employees and contractors.",
+      "updatedAt": "2026-02-01",
+      "body": "NON-DISCLOSURE AGREEMENT\n\nDate: {{letter_date}}\n\nBetween Gamyam Technologies and {{employee_name}} ({{employee_email}}).\n\nThe Employee acknowledges access to confidential information including product roadmaps, client data, and HR records. The Employee agrees not to disclose such information during employment and for two (2) years thereafter.\n\nGoverning law: Laws of India. Jurisdiction: Hyderabad.\n\nSigned:\n{{employee_name}} _________________\n{{hr_signatory}} (HR) _________________"
+    },
+    {
+      "id": 5,
+      "title": "Experience Certificate",
+      "category": "exit",
+      "description": "Issued when an employee completes their tenure.",
+      "updatedAt": "2026-01-18",
+      "body": "TO WHOMSOEVER IT MAY CONCERN\n\nDate: {{letter_date}}\n\nThis is to certify that {{employee_name}} (Employee ID: {{employee_id}}) was employed with Gamyam Technologies Pvt. Ltd. as {{role}} in the {{department}} department from {{join_date}} to {{relieving_date}}.\n\nDuring this period, we found {{employee_name}} to be sincere, diligent, and professional in conduct.\n\nWe wish {{employee_name}} success in future endeavours.\n\nFor Gamyam Technologies,\n{{hr_signatory}}\nAuthorized Signatory"
+    },
+    {
+      "id": 6,
+      "title": "Relieving Letter",
+      "category": "exit",
+      "description": "Confirms last working day and clearance of dues.",
+      "updatedAt": "2026-01-18",
+      "body": "GAMYAM TECHNOLOGIES PVT. LTD.\n\nDate: {{letter_date}}\n\nDear {{employee_name}},\n\nThis is to confirm that you were relieved from your services as {{role}} ({{department}}) with effect from {{relieving_date}}, following acceptance of your resignation and completion of exit formalities.\n\nYour full and final settlement will be processed as per company policy. Please return all company assets if not already submitted.\n\nWe thank you for your contributions.\n\nSincerely,\n{{hr_signatory}}\nHuman Resources"
+    },
+    {
+      "id": 7,
+      "title": "Salary Revision Letter",
+      "category": "employment",
+      "description": "Communicates revised compensation effective from a given date.",
+      "updatedAt": "2026-05-01",
+      "body": "Date: {{letter_date}}\n\nDear {{employee_name}},\n\nFurther to your performance review, we are pleased to inform you that your revised Annual CTC will be {{annual_ctc}}, effective {{revision_effective_date}}.\n\nYour monthly gross will be updated in payroll accordingly. Other terms of employment remain unchanged.\n\nCongratulations and keep up the excellent work.\n\nRegards,\n{{hr_signatory}}\nHR – Gamyam Technologies"
+    },
+    {
+      "id": 8,
+      "title": "Warning Letter",
+      "category": "compliance",
+      "description": "Formal written warning for policy or conduct issues.",
+      "updatedAt": "2026-04-05",
+      "body": "PRIVATE & CONFIDENTIAL\n\nDate: {{letter_date}}\n\nTo: {{employee_name}} ({{employee_id}})\nDepartment: {{department}}\n\nSubject: Warning Letter\n\nDear {{employee_name}},\n\nThis letter serves as a formal warning regarding: {{warning_reason}}.\n\nYou are required to take corrective action immediately. Failure to improve may lead to further disciplinary action up to and including termination.\n\nPlease acknowledge receipt by signing below.\n\nEmployee acknowledgment: _________________  Date: _________\n\n{{hr_signatory}}\nHuman Resources"
+    }
+  ],
+  "generatedDocuments": []
+}

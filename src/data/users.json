@@ -1,0 +1,29 @@
+{
+  "users": [
+    {
+      "email": "admin@gamyam.com",
+      "password": "admin123",
+      "role": "admin",
+      "name": "Admin User"
+    },
+    {
+      "email": "manager@gamyam.com",
+      "password": "mgr123",
+      "role": "manager",
+      "name": "Priya Sharma"
+    },
+    {
+      "email": "arjun@company.com",
+      "password": "emp123",
+      "role": "employee",
+      "name": "Arjun Mehta",
+      "employeeId": "EMP001"
+    },
+    {
+      "email": "super@gamyam.com",
+      "password": "super123",
+      "role": "superadmin",
+      "name": "Super Admin"
+    }
+  ]
+}

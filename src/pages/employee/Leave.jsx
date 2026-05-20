@@ -6,11 +6,36 @@ import Badge from '../../components/ui/Badge'
 import { useAuth } from '../../hooks/useAuth'
 import { useHrms } from '../../hooks/useHrms'
 import {
+  calculateLeaveDays,
   formatDisplayDate,
   formatLeaveDateRange,
   formatLeaveDuration,
   HALF_DAY_PERIODS,
 } from '../../utils/timeUtils'
+
+const LEAVE_TYPE_OPTIONS = [
+  { value: 'Casual Leave', balanceKey: 'casual' },
+  { value: 'Sick Leave', balanceKey: 'sick' },
+  { value: 'Earned Leave', balanceKey: 'earned' },
+  { value: 'Optional Holiday', balanceKey: null, isOptional: true },
+]
+
+function getLeaveTypeRemaining(type, balance, optionalRemaining) {
+  const opt = LEAVE_TYPE_OPTIONS.find((o) => o.value === type)
+  if (!opt) return 0
+  if (opt.isOptional) return optionalRemaining
+  return balance[opt.balanceKey] ?? 0
+}
+
+function formatBalanceLabel(remaining, isOptional, optionalLimit) {
+  if (isOptional) {
+    return `${remaining} of ${optionalLimit} left`
+  }
+  const n = Number(remaining)
+  if (n === 0) return '0 days left'
+  if (n === 0.5) return '0.5 day left'
+  return `${n} ${n === 1 ? 'day' : 'days'} left`
+}
 
 const HOLIDAY_FILTERS = [
   { id: 'all', label: 'All' },
@@ -30,6 +55,7 @@ export default function EmployeeLeave() {
   const {
     leaveRequests,
     submitLeave,
+    showToast,
     employeeStats,
     holidays = [],
     leavePolicy = {},
@@ -57,6 +83,26 @@ export default function EmployeeLeave() {
   )
   const optionalUsed = myOptionalClaims.filter((c) => c.status === 'availed').length
   const optionalLimit = leavePolicy.optionalHolidayLimit ?? 2
+  const optionalRemaining = Math.max(0, optionalLimit - optionalUsed)
+
+  const leaveTypeOptions = useMemo(
+    () =>
+      LEAVE_TYPE_OPTIONS.map((opt) => {
+        const remaining = opt.isOptional
+          ? optionalRemaining
+          : (balance[opt.balanceKey] ?? 0)
+        return {
+          ...opt,
+          remaining,
+          label: `${opt.value} (${formatBalanceLabel(remaining, opt.isOptional, optionalLimit)})`,
+          disabled: remaining <= 0,
+        }
+      }),
+    [balance, optionalRemaining, optionalLimit],
+  )
+
+  const selectedLeaveMeta = leaveTypeOptions.find((o) => o.value === form.type)
+  const selectedRemaining = selectedLeaveMeta?.remaining ?? 0
 
   const sortedHolidays = useMemo(
     () => [...holidays].sort((a, b) => a.date.localeCompare(b.date)),
@@ -84,6 +130,26 @@ export default function EmployeeLeave() {
     e.preventDefault()
     const from = form.from
     const to = isHalfDay ? form.from : form.to
+    const daysRequested = calculateLeaveDays({
+      from,
+      to,
+      durationType: form.durationType,
+    })
+    const remaining = getLeaveTypeRemaining(form.type, balance, optionalRemaining)
+
+    if (remaining <= 0) {
+      showToast(`No ${form.type.toLowerCase()} balance remaining`)
+      return
+    }
+    if (daysRequested > remaining) {
+      const unit =
+        form.type === 'Optional Holiday'
+          ? `${remaining} optional holiday(s)`
+          : `${remaining} ${remaining === 1 ? 'day' : 'days'}`
+      showToast(`Insufficient balance — only ${unit} available for ${form.type}`)
+      return
+    }
+
     submitLeave({
       type: form.type,
       from,
@@ -151,93 +217,48 @@ export default function EmployeeLeave() {
 
       {activeTab === 'calendar' && (
         <div className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-3">
-            <SummaryTile
-              icon={Flag}
-              title="National holidays"
-              count={counts.national}
-              desc="Fixed public holidays"
-            />
-            <SummaryTile
-              icon={PartyPopper}
-              title="Festivals"
-              count={counts.festival}
-              desc="Regional & cultural offs"
-            />
-            <SummaryTile
+          <div className="flex flex-wrap gap-2">
+            <SummaryChip icon={Flag} label="National" count={counts.national} />
+            <SummaryChip icon={PartyPopper} label="Festivals" count={counts.festival} />
+            <SummaryChip
               icon={Star}
-              title="Optional holidays"
+              label="Optional"
               count={counts.optional}
-              desc={`${optionalUsed} / ${optionalLimit} availed in ${leavePolicy.year ?? 2026}`}
+              hint={`${optionalUsed}/${optionalLimit} used`}
             />
           </div>
 
           <Card
             title="Company holiday list"
-            subtitle={`${leavePolicy.year ?? 2026} · ${sortedHolidays.length} holidays on record`}
+            subtitle={`${leavePolicy.year ?? 2026} · ${filteredHolidays.length} shown · ${sortedHolidays.length} total`}
+            className="overflow-hidden"
           >
-            <div className="mb-4 flex flex-wrap gap-2">
-              {HOLIDAY_FILTERS.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setHolidayFilter(id)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition ${
-                    holidayFilter === id
-                      ? 'bg-primary text-white'
-                      : 'border border-border bg-white text-muted hover:border-primary hover:text-primary'
-                  }`}
-                >
-                  {Icon && <Icon className="h-3.5 w-3.5" />}
-                  {label}
-                  {id !== 'all' && (
-                    <span className="opacity-80">({counts[id] ?? sortedHolidays.length})</span>
-                  )}
-                </button>
-              ))}
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-1.5">
+                {HOLIDAY_FILTERS.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setHolidayFilter(id)}
+                    className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                      holidayFilter === id
+                        ? 'bg-primary text-white shadow-sm'
+                        : 'bg-neutral-100 text-muted hover:bg-neutral-200 hover:text-foreground'
+                    }`}
+                  >
+                    {Icon && <Icon className="h-3 w-3" />}
+                    {label}
+                    {id !== 'all' && <span className="opacity-75">({counts[id] ?? 0})</span>}
+                  </button>
+                ))}
+              </div>
+              <span className="text-[11px] text-muted">Scroll list for all dates</span>
             </div>
 
-            <div className="space-y-2">
-              {filteredHolidays.length === 0 ? (
-                <p className="py-6 text-center text-sm text-muted">No holidays in this category</p>
-              ) : (
-                filteredHolidays.map((h) => {
-                  const meta = TYPE_META[h.type] ?? TYPE_META.national
-                  const claimed = h.type === 'optional' && isOptionalClaimed(h.id)
-                  return (
-                    <div
-                      key={h.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface/50 px-4 py-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 flex-col items-center justify-center rounded-lg bg-white text-center shadow-sm ring-1 ring-border">
-                          <span className="text-[10px] font-medium uppercase text-muted">
-                            {new Date(h.date + 'T12:00:00').toLocaleDateString('en-IN', { month: 'short' })}
-                          </span>
-                          <span className="text-sm font-bold text-foreground">
-                            {new Date(h.date + 'T12:00:00').getDate()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{h.name}</p>
-                          <p className="text-xs text-muted">{formatDisplayDate(h.date)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${meta.color}`}>
-                          {meta.label}
-                        </span>
-                        {claimed && (
-                          <span className="rounded-full bg-primary-light px-2 py-0.5 text-xs font-medium text-primary-dark">
-                            Availed
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
+            <HolidayListPanel
+              holidays={filteredHolidays}
+              isOptionalClaimed={isOptionalClaimed}
+            />
           </Card>
 
           <Card title="Holiday policy">
@@ -307,16 +328,31 @@ export default function EmployeeLeave() {
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
                 className="mt-1 w-full rounded-lg border border-border px-4 py-2 text-sm"
               >
-                <option>Casual Leave</option>
-                <option>Sick Leave</option>
-                <option>Earned Leave</option>
-                <option>Optional Holiday</option>
+                {leaveTypeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
-              {form.type === 'Optional Holiday' && (
-                <p className="mt-2 text-xs text-muted">
-                  Remaining optional holidays: {Math.max(0, optionalLimit - optionalUsed)} of {optionalLimit}
-                </p>
-              )}
+              <p className="mt-2 text-xs text-muted">
+                {selectedRemaining > 0 ? (
+                  <>
+                    Available:{' '}
+                    <span className="font-semibold text-primary">
+                      {formatBalanceLabel(
+                        selectedRemaining,
+                        form.type === 'Optional Holiday',
+                        optionalLimit,
+                      )}
+                    </span>
+                    {form.type !== 'Optional Holiday' && isHalfDay && (
+                      <span> · half-day uses 0.5 day</span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-amber-700">No balance left for this leave type</span>
+                )}
+              </p>
             </div>
             {isHalfDay ? (
               <>
@@ -424,15 +460,97 @@ function BalanceCard({ label, value }) {
   )
 }
 
-function SummaryTile({ icon: Icon, title, count, desc }) {
+function SummaryChip({ icon: Icon, label, count, hint }) {
   return (
-    <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-2 text-primary">
-        <Icon className="h-4 w-4" />
-        <p className="text-sm font-semibold text-foreground">{title}</p>
+    <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 shadow-sm">
+      <Icon className="h-4 w-4 shrink-0 text-primary" />
+      <span className="text-sm font-medium text-foreground">{label}</span>
+      <span className="rounded-md bg-primary-light px-1.5 py-0.5 text-xs font-bold tabular-nums text-primary">
+        {count}
+      </span>
+      {hint && <span className="text-[11px] text-muted">{hint}</span>}
+    </div>
+  )
+}
+
+function groupHolidaysByMonth(holidays) {
+  const groups = []
+  let currentKey = null
+  for (const h of holidays) {
+    const d = new Date(h.date + 'T12:00:00')
+    const key = `${d.getFullYear()}-${d.getMonth()}`
+    const monthLabel = d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+    if (key !== currentKey) {
+      currentKey = key
+      groups.push({ monthLabel, items: [] })
+    }
+    groups[groups.length - 1].items.push(h)
+  }
+  return groups
+}
+
+function HolidayListPanel({ holidays, isOptionalClaimed }) {
+  const groups = useMemo(() => groupHolidaysByMonth(holidays), [holidays])
+
+  if (holidays.length === 0) {
+    return (
+      <p className="rounded-lg border border-dashed border-border py-10 text-center text-sm text-muted">
+        No holidays in this category
+      </p>
+    )
+  }
+
+  return (
+    <div className="max-h-[min(22rem,55vh)] overflow-hidden rounded-xl border border-border bg-neutral-50/80">
+      <div className="grid grid-cols-[4.5rem_1fr_auto] gap-x-2 border-b border-border bg-white/90 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted">
+        <span>Date</span>
+        <span>Holiday</span>
+        <span className="text-right">Type</span>
       </div>
-      <p className="mt-2 text-2xl font-bold text-foreground">{count}</p>
-      <p className="mt-1 text-xs text-muted">{desc}</p>
+      <div className="holiday-list-scroll max-h-[min(20rem,50vh)] overflow-y-auto overscroll-contain">
+        {groups.map(({ monthLabel, items }) => (
+          <div key={monthLabel}>
+            <div className="sticky top-0 z-10 border-b border-border bg-neutral-100/95 px-3 py-1.5 backdrop-blur-sm">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">{monthLabel}</p>
+            </div>
+            <ul className="divide-y divide-border/60 bg-white">
+              {items.map((h) => {
+                const meta = TYPE_META[h.type] ?? TYPE_META.national
+                const claimed = h.type === 'optional' && isOptionalClaimed(h.id)
+                const d = new Date(h.date + 'T12:00:00')
+                const shortDate = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                return (
+                  <li
+                    key={h.id}
+                    className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-x-2 px-3 py-2 text-sm transition hover:bg-primary-light/20"
+                  >
+                    <span className="text-xs font-medium tabular-nums text-muted">{shortDate}</span>
+                    <span className="min-w-0 truncate font-medium text-foreground" title={h.name}>
+                      {h.name}
+                    </span>
+                    <div className="flex shrink-0 items-center justify-end gap-1">
+                      <span
+                        className={`max-w-[5.5rem] truncate rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight ${meta.color}`}
+                        title={meta.label}
+                      >
+                        {h.type === 'national' ? 'National' : h.type === 'festival' ? 'Festival' : 'Optional'}
+                      </span>
+                      {claimed && (
+                        <span className="rounded bg-primary px-1 py-0.5 text-[10px] font-semibold text-white">
+                          ✓
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <p className="border-t border-border bg-white px-3 py-1.5 text-center text-[10px] text-muted">
+        {holidays.length} {holidays.length === 1 ? 'holiday' : 'holidays'}
+      </p>
     </div>
   )
 }

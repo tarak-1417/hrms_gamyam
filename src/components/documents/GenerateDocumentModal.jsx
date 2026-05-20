@@ -60,6 +60,7 @@ export default function GenerateDocumentModal({
       templateTitle: template.title,
       employeeId: selected.id,
       employeeName: selected.name,
+      content,
     })
     onClose()
   }

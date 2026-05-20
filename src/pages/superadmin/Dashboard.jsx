@@ -2,15 +2,12 @@ import { Link } from 'react-router-dom'
 import {
   Building2,
   Users,
-  DollarSign,
-  Activity,
   Network,
   UserCog,
   Settings,
   Shield,
   ArchiveRestore,
 } from 'lucide-react'
-import analytics from '../../data/analytics.json'
 import KpiCard from '../../components/hr/KpiCard'
 import ChartCard from '../../components/charts/ChartCard'
 import PlatformGrowthChart from '../../components/charts/PlatformGrowthChart'
@@ -18,8 +15,6 @@ import ActivityFeed from '../../components/hr/ActivityFeed'
 import Card from '../../components/ui/Card'
 import { usePlatform } from '../../hooks/usePlatform'
 import { SUPER_ADMIN_RESPONSIBILITIES } from '../../config/superAdminPermissions'
-
-const kpi = analytics.superAdminKpis
 
 const quickLinks = [
   { to: '/superadmin/companies', icon: Building2, label: 'Organizations', desc: 'Create & manage tenants' },
@@ -46,17 +41,9 @@ export default function SuperAdminDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <KpiCard icon={Building2} label="Organizations" value={activeOrgs} to="/superadmin/companies" />
         <KpiCard icon={Users} label="HR admins" value={adminUsers} to="/superadmin/users" />
-        <KpiCard icon={DollarSign} label="MRR" value={`$${kpi.monthlyRevenue}M`} to="/superadmin/subscriptions" />
-        <KpiCard
-          icon={Activity}
-          label="Uptime"
-          value={`${kpi.systemUptime}%`}
-          trend={{ positive: true, text: 'Last 30 days' }}
-          to="/superadmin/monitoring"
-        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

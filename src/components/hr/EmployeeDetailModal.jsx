@@ -1,12 +1,10 @@
 import { X, Mail, Phone, MapPin, Building2, Briefcase, Calendar, Wallet } from 'lucide-react'
 import Badge from '../ui/Badge'
 import { formatINR } from '../../utils/currency'
-import { formatDisplayDate } from '../../utils/timeUtils'
-
 export default function EmployeeDetailModal({ open, onClose, details }) {
   if (!open || !details?.employee) return null
 
-  const { employee, payroll, leaves, timeLogs, todayAttendance, todayLog } = details
+  const { employee, payroll, leaves } = details
   const gross = (payroll?.basic ?? 0) + (payroll?.allowances ?? 0)
 
   return (
@@ -70,28 +68,6 @@ export default function EmployeeDetailModal({ open, onClose, details }) {
             </Section>
           </div>
 
-          <Section title="Today" className="mt-6">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <MiniStat label="Check in" value={todayLog?.checkIn || todayAttendance?.checkIn || '—'} />
-              <MiniStat label="Check out" value={todayLog?.checkOut || todayAttendance?.checkOut || '—'} />
-              <MiniStat label="Hours" value={todayLog?.workHours || '—'} />
-              <MiniStat label="Status" value={todayLog?.status || todayAttendance?.status || '—'} badge />
-            </div>
-            {todayLog?.daySummary && (
-              <div className="mt-4 rounded-xl border border-border bg-surface p-4">
-                <p className="text-xs font-medium uppercase text-muted">Today&apos;s work summary</p>
-                <p className="mt-2 text-sm text-foreground">{todayLog.daySummary}</p>
-                {todayLog.tasksCompleted?.length > 0 && (
-                  <ul className="mt-2 list-inside list-disc text-sm text-muted">
-                    {todayLog.tasksCompleted.map((t) => (
-                      <li key={t}>{t}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-          </Section>
-
           <Section title="Leave requests" className="mt-6">
             {leaves.length === 0 ? (
               <p className="text-sm text-muted">No leave requests.</p>
@@ -121,29 +97,6 @@ export default function EmployeeDetailModal({ open, onClose, details }) {
                     ))}
                   </tbody>
                 </table>
-              </div>
-            )}
-          </Section>
-
-          <Section title="Attendance & daily summaries" className="mt-6">
-            {timeLogs.length === 0 ? (
-              <p className="text-sm text-muted">No time logs.</p>
-            ) : (
-              <div className="space-y-3">
-                {timeLogs.slice(0, 8).map((log) => (
-                  <div key={log.id} className="rounded-xl border border-border p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="font-medium text-foreground">{formatDisplayDate(log.date)}</p>
-                      <Badge status={log.status} />
-                    </div>
-                    <p className="mt-2 text-xs text-muted">
-                      In {log.checkIn || '—'} · Out {log.checkOut || '—'} · {log.workHours || '—'}
-                    </p>
-                    {log.daySummary && (
-                      <p className="mt-2 text-sm text-foreground">{log.daySummary}</p>
-                    )}
-                  </div>
-                ))}
               </div>
             )}
           </Section>
@@ -192,17 +145,3 @@ function PayCell({ label, value, highlight, danger }) {
   )
 }
 
-function MiniStat({ label, value, badge }) {
-  return (
-    <div className="rounded-lg border border-border bg-surface p-3">
-      <p className="text-xs text-muted">{label}</p>
-      {badge ? (
-        <div className="mt-1">
-          <Badge status={value} />
-        </div>
-      ) : (
-        <p className="mt-1 font-semibold text-foreground">{value}</p>
-      )}
-    </div>
-  )
-}

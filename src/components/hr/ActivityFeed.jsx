@@ -11,16 +11,17 @@ const icons = {
 
 export default function ActivityFeed() {
   const { activityFeed } = useHrms()
+  const items = activityFeed.filter((item) => item.type !== 'attendance')
 
   return (
     <div className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm">
       <h3 className="text-base font-semibold text-foreground">What&apos;s happening</h3>
       <p className="mt-0.5 text-sm text-muted">Live updates from your organization</p>
       <ul className="mt-4 max-h-[280px] space-y-4 overflow-y-auto">
-        {activityFeed.length === 0 ? (
+        {items.length === 0 ? (
           <li className="text-sm text-muted">No recent activity</li>
         ) : (
-          activityFeed.map((item) => {
+          items.map((item) => {
             const Icon = icons[item.type] ?? Megaphone
             return (
               <li key={item.id} className="flex gap-3">

@@ -4,7 +4,6 @@ export const NAV_BY_ROLE = {
   admin: [
     { label: 'Dashboard', path: '/admin', keywords: ['dashboard', 'home', 'overview', 'hr dashboard'] },
     { label: 'Employees', path: '/admin/employees', keywords: ['employee', 'staff', 'people', 'hire', 'bulk import'] },
-    { label: 'Attendance', path: '/admin/attendance', keywords: ['attendance', 'check in', 'check out', 'present', 'late'] },
     { label: 'Leave', path: '/admin/leave', keywords: ['leave', 'approval', 'pending leave', 'vacation'] },
     { label: 'Payroll', path: '/admin/payroll', keywords: ['payroll', 'salary', 'payslip', 'net pay'] },
     { label: 'Recruitment', path: '/admin/recruitment', keywords: ['recruitment', 'job', 'hiring', 'posting'] },
@@ -18,7 +17,6 @@ export const NAV_BY_ROLE = {
     { label: 'Home', path: '/manager', keywords: ['dashboard', 'home', 'overview'] },
     { label: 'My Team', path: '/manager/team', keywords: ['team', 'member', 'engineering'] },
     { label: 'Department', path: '/manager/departments', keywords: ['department', 'org'] },
-    { label: 'Attendance', path: '/manager/attendance', keywords: ['attendance', 'present', 'late'] },
     { label: 'Leave', path: '/manager/leave', keywords: ['leave', 'approval', 'pending'] },
     { label: 'Reports', path: '/manager/reports', keywords: ['report', 'analytics'] },
   ],
@@ -41,7 +39,6 @@ export const NAV_BY_ROLE = {
   employee: [
     { label: 'Dashboard', path: '/employee', keywords: ['dashboard', 'home'] },
     { label: 'Profile', path: '/employee/profile', keywords: ['profile', 'personal'] },
-    { label: 'Attendance', path: '/employee/attendance', keywords: ['attendance', 'check in', 'check out'] },
     { label: 'Leave', path: '/employee/leave', keywords: ['leave', 'holiday', 'balance'] },
     { label: 'Payslips', path: '/employee/payslips', keywords: ['payslip', 'salary', 'payroll'] },
     { label: 'Documents', path: '/employee/documents', keywords: ['document'] },
@@ -52,7 +49,7 @@ export const CHAT_STARTERS = {
   admin: ['HR summary', 'Who is on leave?', 'Pending leaves', 'Arjun Mehta salary'],
   manager: ['Team summary', 'Who is late?', 'Pending approvals', 'List my team'],
   superadmin: ['Platform summary', 'List companies', 'MRR & uptime', 'Open monitoring'],
-  employee: ['My salary', 'Leave balance', 'My leave requests', 'Download payslip'],
+  employee: ['My salary', 'Leave balance', 'My leave requests', 'My profile'],
 }
 
 export function findNavActions(query, role, limit = 2) {

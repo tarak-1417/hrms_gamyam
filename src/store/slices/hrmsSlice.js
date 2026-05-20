@@ -888,7 +888,7 @@ const hrmsSlice = createSlice({
       prependActivity(state, 'announcement', 'Super Admin', 'updated reporting structure')
     },
     recordGeneratedDocument(state, action) {
-      const { templateId, templateTitle, employeeId, employeeName } = action.payload
+      const { templateId, templateTitle, employeeId, employeeName, content } = action.payload
       const id = state.nextId
       state.nextId += 1
       if (!state.generatedDocuments) state.generatedDocuments = []
@@ -899,6 +899,7 @@ const hrmsSlice = createSlice({
         employeeId,
         employeeName,
         generatedAt: todayDate(),
+        content: content ?? '',
       })
       prependActivity(
         state,

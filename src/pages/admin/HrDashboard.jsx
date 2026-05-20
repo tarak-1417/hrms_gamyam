@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Users, UserCheck, CalendarOff, IndianRupee, Plus, Briefcase, Upload } from 'lucide-react'
+import { Users, CalendarOff, IndianRupee, Plus, Briefcase, Upload } from 'lucide-react'
 import analytics from '../../data/analytics.json'
 import { useHrms } from '../../hooks/useHrms'
 import KpiCard from '../../components/hr/KpiCard'
@@ -9,7 +9,6 @@ import PostJobModal from '../../components/hr/PostJobModal'
 import BulkImportJobsModal from '../../components/hr/BulkImportJobsModal'
 import Badge from '../../components/ui/Badge'
 import ChartCard from '../../components/charts/ChartCard'
-import AttendanceTrendChart from '../../components/charts/AttendanceTrendChart'
 import DepartmentChart from '../../components/charts/DepartmentChart'
 import LeaveDistributionChart from '../../components/charts/LeaveDistributionChart'
 import PayrollTrendChart from '../../components/charts/PayrollTrendChart'
@@ -20,10 +19,6 @@ export default function HrDashboard() {
   const [postJobOpen, setPostJobOpen] = useState(false)
   const [importJobsOpen, setImportJobsOpen] = useState(false)
 
-  const rate = adminStats.totalEmployees
-    ? Math.round((adminStats.presentToday / adminStats.totalEmployees) * 100)
-    : 0
-
   const activeJobs = (jobPostings || []).filter((j) => j.status === 'active')
 
   return (
@@ -33,7 +28,7 @@ export default function HrDashboard() {
           <h1 className="page-title">HR Dashboard</h1>
           <p className="page-subtitle">Organization-wide analytics and operations</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 hidden">
           <button
             type="button"
             onClick={() => setImportJobsOpen(true)}
@@ -84,15 +79,8 @@ export default function HrDashboard() {
         )}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard icon={Users} label="Total employees" value={adminStats.totalEmployees} to="/admin/employees" />
-        <KpiCard
-          icon={UserCheck}
-          label="Present today"
-          value={adminStats.presentToday}
-          trend={{ positive: true, text: `${rate}% rate` }}
-          to="/admin/attendance"
-        />
         <KpiCard icon={CalendarOff} label="Pending leaves" value={adminStats.pendingLeaves} to="/admin/leave" />
         <KpiCard
           icon={IndianRupee}
@@ -102,14 +90,9 @@ export default function HrDashboard() {
         />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <ChartCard title="Attendance trend" subtitle="Monthly attendance %">
-          <AttendanceTrendChart />
-        </ChartCard>
-        <ChartCard title="Leave by type" subtitle="Live from leave requests">
-          <LeaveDistributionChart />
-        </ChartCard>
-      </div>
+      <ChartCard title="Leave by type" subtitle="Live from leave requests">
+        <LeaveDistributionChart />
+      </ChartCard>
 
       <div className="grid gap-5 lg:grid-cols-3">
         <ChartCard title="Department headcount" subtitle="Live employee data" className="lg:col-span-2">

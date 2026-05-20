@@ -1,9 +1,8 @@
-import { MapPin } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import { useHrms } from '../../hooks/useHrms'
 
 export default function Settings() {
-  const { attendancePolicy, organization, updateOrganization } = useHrms()
+  const { organization, updateOrganization } = useHrms()
   const org = organization || {}
 
   return (
@@ -57,27 +56,6 @@ export default function Settings() {
             Save Changes
           </button>
         </form>
-      </Card>
-
-      <Card title="Geo check-in" subtitle="Office location for employee attendance">
-        <div className="flex items-start gap-3 rounded-lg border border-border bg-surface p-4">
-          <MapPin className="h-5 w-5 shrink-0 text-primary" />
-          <div className="text-sm">
-            <p className="font-medium text-foreground">
-              {attendancePolicy?.geoCheckInEnabled ? 'Enabled' : 'Disabled'} — employees must be
-              within office radius to check in
-            </p>
-            {(attendancePolicy?.officeLocations ?? []).map((office) => (
-              <div key={office.id} className="mt-3 rounded-lg bg-white p-3 ring-1 ring-border">
-                <p className="font-medium">{office.name}</p>
-                <p className="mt-1 text-xs text-muted">{office.address}</p>
-                <p className="mt-1 font-mono text-xs text-muted">
-                  {office.latitude}, {office.longitude} · radius {office.radiusMeters ?? attendancePolicy?.radiusMeters} m
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
       </Card>
     </div>
   )

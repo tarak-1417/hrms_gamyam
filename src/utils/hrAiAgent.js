@@ -71,7 +71,7 @@ function greetingReply(ctx) {
         ? `your Engineering team (${k.employees.length} people)`
         : role === 'admin'
           ? `the full organization (${k.employees.length} employees)`
-          : 'your HR profile, leave, and attendance'
+          : 'your HR profile and leave'
 
   return reply(
     `Hi ${ctx.name?.split(' ')[0] || 'there'}! I'm Gamyam AI with live access to ${scope}. Ask anything—e.g. "who is on leave", "Arjun Mehta salary", "pending leaves", or "open payroll".`,

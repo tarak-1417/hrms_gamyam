@@ -1,10 +1,9 @@
-import { Users, UserCheck, ClipboardList, Briefcase, Plus } from 'lucide-react'
+import { Users, ClipboardList, Briefcase, Plus } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useHrms } from '../../hooks/useHrms'
 import KpiCard from '../../components/hr/KpiCard'
 import ActivityFeed from '../../components/hr/ActivityFeed'
 import ChartCard from '../../components/charts/ChartCard'
-import AttendanceTrendChart from '../../components/charts/AttendanceTrendChart'
 import DepartmentChart from '../../components/charts/DepartmentChart'
 import LeaveDistributionChart from '../../components/charts/LeaveDistributionChart'
 import PayrollTrendChart from '../../components/charts/PayrollTrendChart'
@@ -26,7 +25,7 @@ export default function ManagerDashboard() {
             <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-3xl">
               Hi, <span className="text-primary">{firstName}</span>
             </h1>
-            <p className="mt-1 text-muted">Here&apos;s your team overview for today</p>
+            <p className="mt-1 text-muted">Here&apos;s your team overview</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -41,27 +40,15 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard icon={Users} label="Team size" value={managerKpis.teamSize} sub="Engineering" to="/manager/team" />
-        <KpiCard
-          icon={UserCheck}
-          label="Present today"
-          value={managerKpis.presentToday}
-          trend={{ positive: true, text: `${managerKpis.avgAttendance}% avg` }}
-          to="/manager/attendance"
-        />
         <KpiCard icon={ClipboardList} label="Pending approvals" value={managerKpis.pendingApprovals} to="/manager/leave" />
         <KpiCard icon={Briefcase} label="Open positions" value={managerKpis.openPositions} to="/manager/reports" />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ChartCard title="Attendance trend">
-          <AttendanceTrendChart />
-        </ChartCard>
-        <ChartCard title="Leave distribution">
-          <LeaveDistributionChart />
-        </ChartCard>
-      </div>
+      <ChartCard title="Leave distribution">
+        <LeaveDistributionChart />
+      </ChartCard>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <ChartCard title="Department headcount" className="lg:col-span-2">

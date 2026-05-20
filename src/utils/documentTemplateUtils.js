@@ -208,3 +208,47 @@ export const EMPTY_TEMPLATE_FORM = {
   body: '',
   fields: [],
 }
+
+/** Safe filename for downloads */
+export function generatedDocumentFilename(doc) {
+  const base = [doc.templateTitle, doc.employeeName, doc.generatedAt]
+    .filter(Boolean)
+    .join('-')
+    .replace(/[^a-z0-9-_]+/gi, '-')
+    .replace(/-+/g, '-')
+  return `${base || 'document'}.txt`
+}
+
+export function downloadGeneratedDocument(doc) {
+  const text =
+    doc.content?.trim() ||
+    `${doc.templateTitle}\nEmployee: ${doc.employeeName}\nDate: ${doc.generatedAt}\n`
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = generatedDocumentFilename(doc)
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+/** Web Share API or clipboard fallback; returns mode for toast messaging */
+export async function shareGeneratedDocument(doc) {
+  const text =
+    doc.content?.trim() ||
+    `${doc.templateTitle} — ${doc.employeeName} (${doc.generatedAt})`
+  const title = `${doc.templateTitle} — ${doc.employeeName}`
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      await navigator.share({ title, text })
+      return 'shared'
+    } catch (err) {
+      if (err?.name === 'AbortError') return 'cancelled'
+    }
+  }
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text)
+    return 'copied'
+  }
+  return 'unsupported'
+}

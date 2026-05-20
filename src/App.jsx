@@ -18,7 +18,6 @@ import ManagerReports from './pages/manager/Reports'
 
 import ManagerDashboard from './pages/manager/Dashboard'
 import ManagerTeam from './pages/manager/Team'
-import HrAttendance from './pages/shared/HrAttendance'
 import HrLeave from './pages/shared/HrLeave'
 import DocumentTemplates from './pages/shared/DocumentTemplates'
 import AuditLogs from './pages/shared/AuditLogs'
@@ -77,7 +76,6 @@ export default function App() {
             <Route index element={<ManagerDashboard />} />
             <Route path="team" element={<ManagerTeam />} />
             <Route path="departments" element={<Departments />} />
-            <Route path="attendance" element={<HrAttendance />} />
             <Route path="leave" element={<HrLeave />} />
             <Route path="reporting" element={<ReportingTree />} />
             <Route path="reports" element={<ManagerReports />} />
@@ -94,7 +92,6 @@ export default function App() {
             <Route index element={<HrDashboard />} />
             <Route path="employees" element={<Employees />} />
             <Route path="departments" element={<Departments />} />
-            <Route path="attendance" element={<HrAttendance />} />
             <Route path="leave" element={<HrLeave />} />
             <Route path="payroll" element={<Payroll />} />
             <Route path="recruitment" element={<Recruitment />} />
@@ -131,7 +128,6 @@ export default function App() {
               <Route index element={<HrDashboard />} />
               <Route path="employees" element={<Employees />} />
               <Route path="reporting" element={<ReportingTree />} />
-              <Route path="attendance" element={<HrAttendance />} />
               <Route path="leave" element={<HrLeave />} />
               <Route path="payroll" element={<Payroll />} />
               <Route path="recruitment" element={<Recruitment />} />

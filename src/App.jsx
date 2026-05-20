@@ -1,6 +1,8 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import ProtectedRoute from './components/ProtectedRoute'
+import PageLoader from './components/ui/PageLoader'
 import Login from './pages/auth/Login'
 
 import AdminHrLayout from './layouts/AdminHrLayout'
@@ -8,39 +10,39 @@ import ManagerLayout from './layouts/ManagerLayout'
 import SuperAdminLayout from './layouts/SuperAdminLayout'
 import EmployeeLayout from './layouts/EmployeeLayout'
 
-import HrDashboard from './pages/admin/HrDashboard'
-import Employees from './pages/admin/Employees'
-import Departments from './pages/shared/Departments'
-import Payroll from './pages/admin/Payroll'
-import Settings from './pages/admin/Settings'
-import Recruitment from './pages/admin/Recruitment'
-import ManagerReports from './pages/manager/Reports'
+const HrDashboard = lazy(() => import('./pages/admin/HrDashboard'))
+const Employees = lazy(() => import('./pages/admin/Employees'))
+const Departments = lazy(() => import('./pages/shared/Departments'))
+const Payroll = lazy(() => import('./pages/admin/Payroll'))
+const Settings = lazy(() => import('./pages/admin/Settings'))
+const Recruitment = lazy(() => import('./pages/admin/Recruitment'))
+const ManagerReports = lazy(() => import('./pages/manager/Reports'))
 
-import ManagerDashboard from './pages/manager/Dashboard'
-import ManagerTeam from './pages/manager/Team'
-import HrLeave from './pages/shared/HrLeave'
-import DocumentTemplates from './pages/shared/DocumentTemplates'
-import AuditLogs from './pages/shared/AuditLogs'
-import ReportingTree from './pages/shared/ReportingTree'
+const ManagerDashboard = lazy(() => import('./pages/manager/Dashboard'))
+const ManagerTeam = lazy(() => import('./pages/manager/Team'))
+const HrLeave = lazy(() => import('./pages/shared/HrLeave'))
+const DocumentTemplates = lazy(() => import('./pages/shared/DocumentTemplates'))
+const AuditLogs = lazy(() => import('./pages/shared/AuditLogs'))
+const ReportingTree = lazy(() => import('./pages/shared/ReportingTree'))
 
-import SuperAdminDashboard from './pages/superadmin/Dashboard'
-import Companies from './pages/superadmin/Companies'
-import Subscriptions from './pages/superadmin/Subscriptions'
-import Monitoring from './pages/superadmin/Monitoring'
-import SuperAdminAnalytics from './pages/superadmin/Analytics'
-import Billing from './pages/superadmin/Billing'
-import Organization from './pages/superadmin/Organization'
-import PlatformUsers from './pages/superadmin/PlatformUsers'
-import GlobalSettings from './pages/superadmin/GlobalSettings'
-import SuperAdminPermissions from './pages/superadmin/Permissions'
-import DeletedRecordsRecovery from './pages/superadmin/DeletedRecordsRecovery'
+const SuperAdminDashboard = lazy(() => import('./pages/superadmin/Dashboard'))
+const Companies = lazy(() => import('./pages/superadmin/Companies'))
+const Subscriptions = lazy(() => import('./pages/superadmin/Subscriptions'))
+const Monitoring = lazy(() => import('./pages/superadmin/Monitoring'))
+const SuperAdminAnalytics = lazy(() => import('./pages/superadmin/Analytics'))
+const Billing = lazy(() => import('./pages/superadmin/Billing'))
+const Organization = lazy(() => import('./pages/superadmin/Organization'))
+const PlatformUsers = lazy(() => import('./pages/superadmin/PlatformUsers'))
+const GlobalSettings = lazy(() => import('./pages/superadmin/GlobalSettings'))
+const SuperAdminPermissions = lazy(() => import('./pages/superadmin/Permissions'))
+const DeletedRecordsRecovery = lazy(() => import('./pages/superadmin/DeletedRecordsRecovery'))
 
-import EmployeeDashboard from './pages/employee/Dashboard'
-import Profile from './pages/employee/Profile'
-import EmployeeLeave from './pages/employee/Leave'
-import Payslips from './pages/employee/Payslips'
-import Documents from './pages/employee/Documents'
-import AiAssistant from './pages/employee/AiAssistant'
+const EmployeeDashboard = lazy(() => import('./pages/employee/Dashboard'))
+const Profile = lazy(() => import('./pages/employee/Profile'))
+const EmployeeLeave = lazy(() => import('./pages/employee/Leave'))
+const Payslips = lazy(() => import('./pages/employee/Payslips'))
+const Documents = lazy(() => import('./pages/employee/Documents'))
+const AiAssistant = lazy(() => import('./pages/employee/AiAssistant'))
 
 const HOME = {
   admin: '/admin',
@@ -60,7 +62,8 @@ const routerBasename =
 
 export default function App() {
   return (
-      <BrowserRouter basename={routerBasename}>
+    <BrowserRouter basename={routerBasename}>
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<RootRedirect />} />
@@ -156,6 +159,7 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
+      </Suspense>
+    </BrowserRouter>
   )
 }

@@ -2,8 +2,6 @@ import { Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Users,
-  Building2,
-  CalendarCheck,
   CalendarOff,
   Wallet,
   Settings,
@@ -14,8 +12,6 @@ import Header from '../components/layout/Header'
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/employees', icon: Users, label: 'Employees' },
-  { to: '/admin/departments', icon: Building2, label: 'Departments' },
-  { to: '/admin/attendance', icon: CalendarCheck, label: 'Attendance' },
   { to: '/admin/leave', icon: CalendarOff, label: 'Leave Management' },
   { to: '/admin/payroll', icon: Wallet, label: 'Payroll' },
   { to: '/admin/settings', icon: Settings, label: 'Settings' },

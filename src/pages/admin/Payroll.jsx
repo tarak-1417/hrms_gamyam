@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Eye, Trash2 } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
+import { Eye } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import FilterBar, { FilterSelect } from '../../components/ui/FilterBar'
 import EmployeeDetailModal from '../../components/hr/EmployeeDetailModal'
@@ -30,9 +29,7 @@ function matchesNetBand(net, band) {
 }
 
 export default function Payroll() {
-  const { payrollRecords, employees, getEmployeeDetails, softDeletePayrollRecord } = useHrms()
-  const { user } = useAuth()
-  const isSuperAdmin = user?.role === 'superadmin'
+  const { payrollRecords, employees, getEmployeeDetails } = useHrms()
   const [detailId, setDetailId] = useState(null)
   const [departmentFilter, setDepartmentFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -43,10 +40,10 @@ export default function Payroll() {
   const payrollRows = useMemo(() => {
     return employees
       .map((emp) => {
-        const record = payrollRecords.find((p) => p.employeeId === emp.id)
-        const row = record || getEmployeeDetails(emp.id)?.payroll
+        const row =
+          payrollRecords.find((p) => p.employeeId === emp.id) || getEmployeeDetails(emp.id)?.payroll
         if (!row) return null
-        return { emp, row, recordId: record?.id }
+        return { emp, row }
       })
       .filter(Boolean)
   }, [employees, payrollRecords, getEmployeeDetails])
@@ -153,7 +150,7 @@ export default function Payroll() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredRows.map(({ emp, row, recordId }) => (
+                {filteredRows.map(({ emp, row }) => (
                   <tr key={emp.id} className="hover:bg-surface/50">
                     <td className="py-4 font-medium text-foreground">{emp.name}</td>
                     <td className="py-4 text-muted">{emp.department}</td>
@@ -162,30 +159,16 @@ export default function Payroll() {
                     <td className="py-4 text-primary">{formatINR(row.allowances)}</td>
                     <td className="py-4 text-red-600">{formatINR(row.deductions)}</td>
                     <td className="py-4 font-semibold">{formatINR(row.net)}</td>
-                    <td className="py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setDetailId(emp.id)}
-                          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary-dark"
-                        >
-                          <Eye className="h-4 w-4" />
-                          View
-                        </button>
-                        {isSuperAdmin && recordId != null && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (window.confirm('Move this payroll record to the recycle bin?')) {
-                                softDeletePayrollRecord(recordId)
-                              }
-                            }}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
+                    <td className="py-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setDetailId(emp.id)}
+                        title="View employee"
+                        className="inline-flex rounded-md p-2 text-primary transition-colors hover:bg-primary-light"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">View</span>
+                      </button>
                     </td>
                   </tr>
                 ))}

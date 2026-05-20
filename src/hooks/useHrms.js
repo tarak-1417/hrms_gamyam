@@ -32,6 +32,7 @@ import {
   upsertBranch as upsertBranchAction,
   deleteBranch as deleteBranchAction,
   setReportingStructure as setReportingStructureAction,
+  setEmployeeManager as setEmployeeManagerAction,
   softDeleteEmployee as softDeleteEmployeeAction,
   softDeleteLeaveRequest as softDeleteLeaveRequestAction,
   softDeletePayrollRecord as softDeletePayrollRecordAction,
@@ -45,6 +46,7 @@ import {
   restorePlatformUserFromTrash,
 } from '../store/slices/platformSlice'
 import { setSearchQuery, setToast, clearToast } from '../store/slices/uiSlice'
+import { wouldCreateReportingCycle } from '../utils/reportingTreeUtils'
 import {
   selectAdminStats,
   selectManagerKpis,
@@ -486,6 +488,96 @@ export function useHrms() {
     [dispatch, showToast],
   )
 
+  const updateEmployeeManager = useCallback(
+    (employeeId, managerId) => {
+      if (wouldCreateReportingCycle(employeeId, managerId, hrms.employees)) {
+        showToast('Cannot assign: would create a reporting loop')
+        return false
+      }
+      dispatch(setEmployeeManagerAction({ employeeId, managerId: managerId || null }))
+      showToast('Reporting manager updated')
+      return true
+    },
+    [dispatch, hrms.employees, showToast],
+  )
+
+  const assignEmployeesToManager = useCallback(
+    (managerId, employeeIds) => {
+      const invalid = employeeIds.find((id) =>
+        wouldCreateReportingCycle(id, managerId, hrms.employees),
+      )
+      if (invalid) {
+        showToast('Cannot assign: would create a reporting loop')
+        return false
+      }
+      const assignments = employeeIds.map((employeeId) => ({ employeeId, managerId }))
+      dispatch(setReportingStructureAction(assignments))
+      showToast(
+        employeeIds.length === 1
+          ? 'Employee assigned to manager'
+          : `${employeeIds.length} employees assigned to manager`,
+      )
+      return true
+    },
+    [dispatch, hrms.employees, showToast],
+  )
+
+  const unassignEmployeesFromManager = useCallback(
+    (employeeIds) => {
+      if (!employeeIds?.length) return true
+      const assignments = employeeIds.map((employeeId) => ({ employeeId, managerId: null }))
+      dispatch(setReportingStructureAction(assignments))
+      showToast(
+        employeeIds.length === 1
+          ? 'Removed from reporting manager'
+          : `${employeeIds.length} employees removed from team`,
+      )
+      return true
+    },
+    [dispatch, showToast],
+  )
+
+  const syncManagerTeam = useCallback(
+    (managerId, selectedEmployeeIds) => {
+      const selected = new Set(selectedEmployeeIds)
+      const current = (hrms.employees || [])
+        .filter((e) => e.managerId === managerId && e.status !== 'inactive')
+        .map((e) => e.id)
+      const toAssign = [...selected].filter((id) => id !== managerId)
+      const toUnassign = current.filter((id) => !selected.has(id))
+
+      const invalid = toAssign.find((id) =>
+        wouldCreateReportingCycle(id, managerId, hrms.employees),
+      )
+      if (invalid) {
+        showToast('Cannot assign: would create a reporting loop')
+        return false
+      }
+
+      const assignments = [
+        ...toAssign.map((employeeId) => ({ employeeId, managerId })),
+        ...toUnassign.map((employeeId) => ({ employeeId, managerId: null })),
+      ]
+      if (assignments.length) {
+        dispatch(setReportingStructureAction(assignments))
+      }
+
+      const moved = toAssign.filter((id) => !current.includes(id)).length
+      const removed = toUnassign.length
+      if (moved && removed) {
+        showToast(`Reassigned ${moved}, removed ${removed} from team`)
+      } else if (moved) {
+        showToast(moved === 1 ? 'Employee added to team' : `${moved} employees added to team`)
+      } else if (removed) {
+        showToast(removed === 1 ? 'Removed from team' : `${removed} removed from team`)
+      } else {
+        showToast('No changes to team')
+      }
+      return true
+    },
+    [dispatch, hrms.employees, showToast],
+  )
+
   const orgContext = useMemo(
     () => ({
       organization: hrms.organization,
@@ -536,6 +628,10 @@ export function useHrms() {
     upsertBranch,
     deleteBranch,
     setReportingStructure,
+    updateEmployeeManager,
+    assignEmployeesToManager,
+    unassignEmployeesFromManager,
+    syncManagerTeam,
     softDeleteEmployee,
     softDeleteLeaveRequest,
     softDeletePayrollRecord,

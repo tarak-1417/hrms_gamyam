@@ -1,9 +1,8 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
-  User,
-  CalendarCheck,
   CalendarOff,
+  GitBranch,
   FileText,
   ClipboardList,
   FolderOpen,
@@ -13,15 +12,13 @@ import {
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
 import Toast from '../components/ui/Toast'
-import PortalSessionTracker from '../components/employee/PortalSessionTracker'
 import FloatingAiAssistant from '../components/ai/FloatingAiAssistant'
 import useMobileNav from '../hooks/useMobileNav'
 
 const navItems = [
   { to: '/employee', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/employee/profile', icon: User, label: 'My Profile' },
-  { to: '/employee/attendance', icon: CalendarCheck, label: 'Attendance' },
   { to: '/employee/leave', icon: CalendarOff, label: 'Leave' },
+  { to: '/employee/reporting', icon: GitBranch, label: 'My reporting' },
   { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
   { to: '/employee/tasks', icon: ClipboardList, label: 'Tasks' },
   { to: '/employee/documents', icon: FolderOpen, label: 'Documents' },
@@ -32,8 +29,8 @@ const navItems = [
 const pageTitles = {
   '/employee': { title: 'My Dashboard', description: 'Welcome back!' },
   '/employee/profile': { title: 'My Profile', description: 'Personal information' },
-  '/employee/attendance': { title: 'My Attendance', description: 'Track your attendance' },
   '/employee/leave': { title: 'Leave & Holidays', description: 'Balances, holidays, and leave requests' },
+  '/employee/reporting': { title: 'My reporting', description: 'Your manager and reporting chain' },
   '/employee/payslips': { title: 'Payslips', description: 'View salary statements' },
   '/employee/tasks': { title: 'Tasks', description: 'Your assigned tasks' },
   '/employee/documents': { title: 'Documents', description: 'HR documents & files' },
@@ -48,7 +45,6 @@ export default function EmployeeLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface">
-      <PortalSessionTracker />
       {nav.open && (
         <button
           type="button"
@@ -60,6 +56,7 @@ export default function EmployeeLayout() {
       <Sidebar
         brand={{ title: 'Gamyam HRMS', subtitle: 'Employee Portal' }}
         navItems={navItems}
+        profilePath="/employee/profile"
         mobileOpen={nav.open}
         onClose={nav.close}
       />

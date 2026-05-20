@@ -103,6 +103,20 @@
   ],
   "employees": [
     {
+      "id": "EMP000",
+      "name": "Rajesh Kumar",
+      "email": "ceo@gamyam.com",
+      "department": "Executive",
+      "role": "Chief Executive Officer",
+      "status": "active",
+      "joinDate": "2018-01-01",
+      "phone": "+91 98765 43000",
+      "address": "Hyderabad, Telangana",
+      "avatar": "RK",
+      "branchId": "br-hyd",
+      "managerId": null
+    },
+    {
       "id": "EMP001",
       "name": "Arjun Mehta",
       "email": "arjun@company.com",
@@ -128,7 +142,7 @@
       "address": "",
       "avatar": "SR",
       "branchId": "br-hyd",
-      "managerId": null
+      "managerId": "EMP000"
     },
     {
       "id": "EMP003",
@@ -142,7 +156,7 @@
       "address": "",
       "avatar": "RV",
       "branchId": "br-hyd",
-      "managerId": null
+      "managerId": "EMP000"
     },
     {
       "id": "EMP004",
@@ -156,7 +170,7 @@
       "address": "",
       "avatar": "KN",
       "branchId": "br-dubai",
-      "managerId": null
+      "managerId": "EMP000"
     },
     {
       "id": "EMP005",
@@ -170,7 +184,7 @@
       "address": "",
       "avatar": "DP",
       "branchId": "br-hyd",
-      "managerId": null
+      "managerId": "EMP000"
     },
     {
       "id": "EMP006",
@@ -191,14 +205,14 @@
       "name": "Priya Sharma",
       "email": "manager@gamyam.com",
       "department": "Engineering",
-      "role": "Team Lead",
+      "role": "Engineering Manager",
       "status": "active",
       "joinDate": "2019-05-01",
       "phone": "+91 98765 43200",
       "address": "Hyderabad, Telangana",
       "avatar": "PS",
       "branchId": "br-hyd",
-      "managerId": null
+      "managerId": "EMP000"
     }
   ],
   "leaveRequests": [

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, Search, Eye, Pencil, Upload, Trash2 } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
+import { Plus, Search, Eye, Pencil, Upload } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import FilterBar, { FilterSelect } from '../../components/ui/FilterBar'
 import Badge from '../../components/ui/Badge'
@@ -64,10 +63,7 @@ export default function Employees() {
     bulkImportEmployees,
     updateEmployee,
     getEmployeeDetails,
-    softDeleteEmployee,
   } = useHrms()
-  const { user } = useAuth()
-  const isSuperAdmin = user?.role === 'superadmin'
 
   const departmentNames = useMemo(() => {
     const fromOrg = getDepartmentNames(deptRecords)
@@ -343,28 +339,6 @@ export default function Employees() {
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </button>
-                          {isSuperAdmin && (
-                            <>
-                              <span className="mx-0.5 h-5 w-px bg-neutral-200" aria-hidden />
-                              <button
-                                type="button"
-                                title="Move to recycle bin"
-                                onClick={() => {
-                                  if (
-                                    window.confirm(
-                                      `Move ${emp.name} to the recycle bin? Restore from Super Admin → Recycle bin.`,
-                                    )
-                                  ) {
-                                    softDeleteEmployee(emp.id)
-                                  }
-                                }}
-                                className="rounded-md p-2 text-red-600 transition-colors hover:bg-red-50"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Remove</span>
-                              </button>
-                            </>
-                          )}
                         </div>
                       </div>
                     </td>

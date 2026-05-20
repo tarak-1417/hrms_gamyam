@@ -1,10 +1,11 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { LogOut, X } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useHrms } from '../../hooks/useHrms'
 import BrandLogo from '../BrandLogo'
 
-export default function Sidebar({ brand, navItems, mobileOpen, onClose }) {
+export default function Sidebar({ brand, navItems, mobileOpen, onClose, profilePath }) {
+  const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { recordPortalLogout } = useHrms()
 
@@ -18,6 +19,16 @@ export default function Sidebar({ brand, navItems, mobileOpen, onClose }) {
   const handleNav = () => {
     onClose?.()
   }
+
+  const openProfile = () => {
+    if (profilePath) {
+      navigate(profilePath)
+      onClose?.()
+    }
+  }
+
+  const userCardClass =
+    'mb-3 flex w-full items-center gap-3 rounded-xl bg-white/5 px-3 py-3 ring-1 ring-white/10'
 
   return (
     <aside
@@ -62,15 +73,22 @@ export default function Sidebar({ brand, navItems, mobileOpen, onClose }) {
       </nav>
 
       <div className="shrink-0 border-t border-white/10 p-4">
-        <div className="mb-3 flex items-center gap-3 rounded-xl bg-white/5 px-3 py-3 ring-1 ring-white/10">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
-            {user?.name?.charAt(0) ?? 'U'}
+        {profilePath ? (
+          <button
+            type="button"
+            onClick={openProfile}
+            className={`${userCardClass} text-left transition hover:bg-white/10 hover:ring-primary/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
+            aria-label="Open my profile"
+          >
+            <UserAvatar name={user?.name} />
+            <UserDetails name={user?.name} email={user?.email} />
+          </button>
+        ) : (
+          <div className={userCardClass}>
+            <UserAvatar name={user?.name} />
+            <UserDetails name={user?.name} email={user?.email} />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">{user?.name}</p>
-            <p className="truncate text-xs text-white/45">{user?.email}</p>
-          </div>
-        </div>
+        )}
         <button
           type="button"
           onClick={handleLogout}
@@ -81,5 +99,22 @@ export default function Sidebar({ brand, navItems, mobileOpen, onClose }) {
         </button>
       </div>
     </aside>
+  )
+}
+
+function UserAvatar({ name }) {
+  return (
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
+      {name?.charAt(0) ?? 'U'}
+    </div>
+  )
+}
+
+function UserDetails({ name, email }) {
+  return (
+    <div className="min-w-0 flex-1">
+      <p className="truncate text-sm font-medium text-white">{name}</p>
+      <p className="truncate text-xs text-white/45">{email}</p>
+    </div>
   )
 }

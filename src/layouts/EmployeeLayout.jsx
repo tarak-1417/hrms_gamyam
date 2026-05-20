@@ -4,10 +4,7 @@ import {
   CalendarOff,
   GitBranch,
   FileText,
-  ClipboardList,
   FolderOpen,
-  TrendingUp,
-  MessageSquare,
 } from 'lucide-react'
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
@@ -20,10 +17,7 @@ const navItems = [
   { to: '/employee/leave', icon: CalendarOff, label: 'Leave' },
   { to: '/employee/reporting', icon: GitBranch, label: 'My reporting' },
   { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
-  { to: '/employee/tasks', icon: ClipboardList, label: 'Tasks' },
   { to: '/employee/documents', icon: FolderOpen, label: 'Documents' },
-  { to: '/employee/performance', icon: TrendingUp, label: 'Performance' },
-  { to: '/employee/communication', icon: MessageSquare, label: 'Messages' },
 ]
 
 const pageTitles = {
@@ -32,10 +26,7 @@ const pageTitles = {
   '/employee/leave': { title: 'Leave & Holidays', description: 'Balances, holidays, and leave requests' },
   '/employee/reporting': { title: 'My reporting', description: 'Your manager and reporting chain' },
   '/employee/payslips': { title: 'Payslips', description: 'View salary statements' },
-  '/employee/tasks': { title: 'Tasks', description: 'Your assigned tasks' },
   '/employee/documents': { title: 'Documents', description: 'HR documents & files' },
-  '/employee/performance': { title: 'Performance', description: 'Reviews & ratings' },
-  '/employee/communication': { title: 'Messages', description: 'Internal communication' },
 }
 
 export default function EmployeeLayout() {

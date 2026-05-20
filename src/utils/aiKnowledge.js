@@ -188,11 +188,11 @@ export function queryAppKnowledge(message, k) {
       const open = k.myTasks
       return withNav(
         open.length === 0
-          ? 'You have no open tasks.'
+          ? 'You have no open tasks assigned.'
           : `Open tasks:\n${open.map((t) => `• ${t.title} (due ${t.due}, ${t.priority})`).join('\n')}`,
         message,
         role,
-        ['/employee/tasks'],
+        [],
       )
     }
   }

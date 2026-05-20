@@ -44,10 +44,7 @@ export const NAV_BY_ROLE = {
     { label: 'Attendance', path: '/employee/attendance', keywords: ['attendance', 'check in', 'check out'] },
     { label: 'Leave', path: '/employee/leave', keywords: ['leave', 'holiday', 'balance'] },
     { label: 'Payslips', path: '/employee/payslips', keywords: ['payslip', 'salary', 'payroll'] },
-    { label: 'Tasks', path: '/employee/tasks', keywords: ['task', 'todo'] },
     { label: 'Documents', path: '/employee/documents', keywords: ['document'] },
-    { label: 'Performance', path: '/employee/performance', keywords: ['performance', 'review'] },
-    { label: 'Messages', path: '/employee/communication', keywords: ['message', 'communication'] },
   ],
 }
 
@@ -55,7 +52,7 @@ export const CHAT_STARTERS = {
   admin: ['HR summary', 'Who is on leave?', 'Pending leaves', 'Arjun Mehta salary'],
   manager: ['Team summary', 'Who is late?', 'Pending approvals', 'List my team'],
   superadmin: ['Platform summary', 'List companies', 'MRR & uptime', 'Open monitoring'],
-  employee: ['My salary', 'Attendance today', 'Leave balance', 'My open tasks'],
+  employee: ['My salary', 'Leave balance', 'My leave requests', 'Download payslip'],
 }
 
 export function findNavActions(query, role, limit = 2) {

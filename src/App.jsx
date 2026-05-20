@@ -40,10 +40,7 @@ import EmployeeDashboard from './pages/employee/Dashboard'
 import Profile from './pages/employee/Profile'
 import EmployeeLeave from './pages/employee/Leave'
 import Payslips from './pages/employee/Payslips'
-import EmployeeTasks from './pages/employee/Tasks'
 import Documents from './pages/employee/Documents'
-import Performance from './pages/employee/Performance'
-import Communication from './pages/employee/Communication'
 import AiAssistant from './pages/employee/AiAssistant'
 
 const HOME = {
@@ -157,10 +154,7 @@ export default function App() {
             <Route path="leave" element={<EmployeeLeave />} />
             <Route path="reporting" element={<ReportingTree />} />
             <Route path="payslips" element={<Payslips />} />
-            <Route path="tasks" element={<EmployeeTasks />} />
             <Route path="documents" element={<Documents />} />
-            <Route path="performance" element={<Performance />} />
-            <Route path="communication" element={<Communication />} />
             <Route path="ai" element={<AiAssistant />} />
           </Route>
 

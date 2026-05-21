@@ -2,10 +2,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// GitHub Pages serves at /HRMS-Gamyam/; local dev uses /
-export default defineConfig(({ command }) => ({
+// Netlify serves at root /; use '/' for both dev and production
+export default defineConfig(() => ({
   plugins: [react(), tailwindcss()],
-  base: command === 'build' ? '/HRMS-Gamyam/' : '/',
+  base: '/',
   build: {
     rollupOptions: {
       output: {

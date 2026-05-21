@@ -11,7 +11,7 @@ function iconBtnClass(active = false) {
   }`
 }
 
-export default function HrTopBar({ onMenuClick }) {
+export default function HrTopBar({ onMenuClick, showHelpAndSettings = true }) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { leaveRequests } = useHrms()
@@ -69,52 +69,56 @@ export default function HrTopBar({ onMenuClick }) {
           </button>
         </TopBarHoverPanel>
 
-        <TopBarHoverPanel
-          title="Help"
-          panelClassName="w-56 max-w-[calc(100vw-2rem)]"
-          content={
-            <ul className="space-y-1.5 text-xs text-neutral-600">
-              <li>Search pages, people, and leave from the bar on the left.</li>
-              <li>Charts and reports update from the same demo dataset.</li>
-            </ul>
-          }
-        >
-          <button type="button" className={iconBtnClass()} aria-label="Help">
-            <HelpCircle className="h-5 w-5" />
-          </button>
-        </TopBarHoverPanel>
+        {showHelpAndSettings && (
+          <>
+            <TopBarHoverPanel
+              title="Help"
+              panelClassName="w-56 max-w-[calc(100vw-2rem)]"
+              content={
+                <ul className="space-y-1.5 text-xs text-neutral-600">
+                  <li>Search pages, people, and leave from the bar on the left.</li>
+                  <li>Charts and reports update from the same demo dataset.</li>
+                </ul>
+              }
+            >
+              <button type="button" className={iconBtnClass()} aria-label="Help">
+                <HelpCircle className="h-5 w-5" />
+              </button>
+            </TopBarHoverPanel>
 
-        <TopBarHoverPanel
-          title="Settings"
-          panelClassName="w-52 max-w-[calc(100vw-2rem)]"
-          content={
-            <div className="space-y-2">
-              <p className="text-xs text-muted">
-                {user?.role === 'admin'
-                  ? 'Company profile, policies, and integrations.'
-                  : user?.role === 'superadmin'
-                    ? 'Billing and tenant configuration.'
-                    : 'Manager preferences and team defaults.'}
-              </p>
+            <TopBarHoverPanel
+              title="Settings"
+              panelClassName="w-52 max-w-[calc(100vw-2rem)]"
+              content={
+                <div className="space-y-2">
+                  <p className="text-xs text-muted">
+                    {user?.role === 'admin'
+                      ? 'Company profile, policies, and integrations.'
+                      : user?.role === 'superadmin'
+                        ? 'Billing and tenant configuration.'
+                        : 'Manager preferences and team defaults.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate(settingsPath)}
+                    className="w-full rounded-lg bg-primary-light px-2 py-1.5 text-xs font-medium text-primary hover:bg-primary/15"
+                  >
+                    Open settings →
+                  </button>
+                </div>
+              }
+            >
               <button
                 type="button"
                 onClick={() => navigate(settingsPath)}
-                className="w-full rounded-lg bg-primary-light px-2 py-1.5 text-xs font-medium text-primary hover:bg-primary/15"
+                className={iconBtnClass()}
+                aria-label="Settings"
               >
-                Open settings →
+                <Settings className="h-5 w-5" />
               </button>
-            </div>
-          }
-        >
-          <button
-            type="button"
-            onClick={() => navigate(settingsPath)}
-            className={iconBtnClass()}
-            aria-label="Settings"
-          >
-            <Settings className="h-5 w-5" />
-          </button>
-        </TopBarHoverPanel>
+            </TopBarHoverPanel>
+          </>
+        )}
       </div>
     </header>
   )

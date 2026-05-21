@@ -39,5 +39,7 @@ const navSections = [
 ]
 
 export default function SuperAdminLayout() {
-  return <HrLayout navSections={navSections} portalLabel="Super Admin" />
+  return (
+    <HrLayout navSections={navSections} portalLabel="Super Admin" showHelpAndSettings={false} />
+  )
 }

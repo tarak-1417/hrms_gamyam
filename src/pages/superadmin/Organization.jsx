@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Building2, Briefcase, GitBranch, MapPin, Network, Save, Plus, Pencil, Trash2 } from 'lucide-react'
+import { Building2, Briefcase, MapPin, Network, Save, Plus, Pencil, Trash2 } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import { useHrms } from '../../hooks/useHrms'
-import { getEmployeeManagerName } from '../../utils/organizationHelpers'
 
 const TABS = [
   { id: 'company', label: 'Company', icon: Building2 },
   { id: 'departments', label: 'Departments', icon: Network },
   { id: 'designations', label: 'Designations', icon: Briefcase },
   { id: 'branches', label: 'Branches', icon: MapPin },
-  { id: 'reporting', label: 'Reporting', icon: GitBranch },
 ]
 
 const inputClass =
@@ -65,7 +63,6 @@ export default function Organization() {
     deleteDesignation,
     upsertBranch,
     deleteBranch,
-    setReportingStructure,
   } = useHrms()
 
   const [tab, setTab] = useState('company')
@@ -98,16 +95,10 @@ export default function Organization() {
   const [editingDesigId, setEditingDesigId] = useState(null)
   const [branchForm, setBranchForm] = useState(emptyBranch())
   const [editingBranchId, setEditingBranchId] = useState(null)
-  const [reportingDraft, setReportingDraft] = useState({})
 
   const activeEmployees = useMemo(
     () => employees.filter((e) => e.status !== 'inactive'),
     [employees],
-  )
-
-  const managerOptions = useMemo(
-    () => activeEmployees.filter((e) => e.status === 'active'),
-    [activeEmployees],
   )
 
   const saveCompany = (e) => {
@@ -153,28 +144,12 @@ export default function Organization() {
     setEditingBranchId(null)
   }
 
-  const initReporting = () => {
-    const draft = {}
-    activeEmployees.forEach((e) => {
-      draft[e.id] = e.managerId || ''
-    })
-    setReportingDraft(draft)
-  }
-
-  const saveReporting = () => {
-    const assignments = Object.entries(reportingDraft).map(([employeeId, managerId]) => ({
-      employeeId,
-      managerId: managerId || null,
-    }))
-    setReportingStructure(assignments)
-  }
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="page-title">Organization Setup</h1>
         <p className="page-subtitle">
-          Company profile, departments, designations, branches, and reporting hierarchy
+          Company profile, departments, designations, and branches
         </p>
       </div>
 
@@ -183,10 +158,7 @@ export default function Organization() {
           <button
             key={id}
             type="button"
-            onClick={() => {
-              setTab(id)
-              if (id === 'reporting' && !Object.keys(reportingDraft).length) initReporting()
-            }}
+            onClick={() => setTab(id)}
             className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
               tab === id
                 ? 'bg-primary text-white'
@@ -804,67 +776,6 @@ export default function Organization() {
         </div>
       )}
 
-      {tab === 'reporting' && (
-        <Card
-          title="Reporting structure"
-          subtitle="Who reports to whom — used for manager team views and HR letters"
-          action={
-            <button
-              type="button"
-              onClick={saveReporting}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white"
-            >
-              <Save className="h-4 w-4" />
-              Save all
-            </button>
-          }
-        >
-          <div className="table-scroll">
-            <table className="w-full min-w-[32rem] text-sm">
-              <thead className="bg-neutral-50 text-muted">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium">Employee</th>
-                  <th className="px-4 py-3 text-left font-medium">Department</th>
-                  <th className="px-4 py-3 text-left font-medium">Reports to</th>
-                  <th className="px-4 py-3 text-left font-medium">Current manager</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {activeEmployees.map((e) => (
-                  <tr key={e.id}>
-                    <td className="px-4 py-3 font-medium">
-                      {e.name}
-                      <span className="ml-1 text-xs text-muted">({e.id})</span>
-                    </td>
-                    <td className="px-4 py-3 text-muted">{e.department}</td>
-                    <td className="px-4 py-3">
-                      <select
-                        value={reportingDraft[e.id] ?? e.managerId ?? ''}
-                        onChange={(ev) =>
-                          setReportingDraft({ ...reportingDraft, [e.id]: ev.target.value })
-                        }
-                        className="w-full max-w-xs rounded-lg border border-border px-2 py-1.5 text-sm"
-                      >
-                        <option value="">— No manager —</option>
-                        {managerOptions
-                          .filter((m) => m.id !== e.id)
-                          .map((m) => (
-                            <option key={m.id} value={m.id}>
-                              {m.name} · {m.role}
-                            </option>
-                          ))}
-                      </select>
-                    </td>
-                    <td className="px-4 py-3 text-muted">
-                      {getEmployeeManagerName(employees, e.managerId)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
     </div>
   )
 }

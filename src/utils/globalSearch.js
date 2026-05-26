@@ -45,13 +45,6 @@ export function runGlobalSearch(query, { role, user, employees = [], leaveReques
     scopedEmployees = employees.filter((e) => e.id === user?.employeeId)
   }
 
-  const employeePath =
-    role === 'admin'
-      ? '/admin/employees'
-      : role === 'manager'
-        ? '/manager/team'
-        : '/employee/profile'
-
   scopedEmployees.forEach((emp) => {
     const haystack = [emp.name, emp.email, emp.id, emp.department, emp.role, emp.status].join(' ')
     if (!matchesQuery(haystack, q)) return
@@ -67,7 +60,16 @@ export function runGlobalSearch(query, { role, user, employees = [], leaveReques
       type: 'employee',
       title: emp.name,
       subtitle: `${emp.department} · ${emp.role}`,
-      path: employeePath,
+      path:
+        role === 'admin'
+          ? emp.id === user?.employeeId
+            ? '/admin/profile'
+            : '/admin/employees'
+          : role === 'manager'
+            ? emp.id === user?.employeeId
+              ? '/manager/profile'
+              : '/manager/team'
+            : '/employee/profile',
       searchHint: emp.name,
       score,
     })
@@ -125,6 +127,8 @@ export function runGlobalSearch(query, { role, user, employees = [], leaveReques
     const docPath =
       role === 'admin'
         ? '/admin/documents'
+        : role === 'manager'
+          ? '/manager/documents'
         : role === 'superadmin'
           ? '/superadmin/documents'
           : '/employee/documents'

@@ -2,7 +2,6 @@ import ChartCard from '../../components/charts/ChartCard'
 import AttendanceTrendChart from '../../components/charts/AttendanceTrendChart'
 import DepartmentChart from '../../components/charts/DepartmentChart'
 import LeaveDistributionChart from '../../components/charts/LeaveDistributionChart'
-import PayrollTrendChart from '../../components/charts/PayrollTrendChart'
 import HiringPipelineChart from '../../components/charts/HiringPipelineChart'
 
 export default function ManagerReports() {
@@ -22,12 +21,9 @@ export default function ManagerReports() {
         <ChartCard title="Department headcount" className="lg:col-span-2">
           <DepartmentChart />
         </ChartCard>
-        <ChartCard title="Payroll trend">
-          <PayrollTrendChart />
-        </ChartCard>
-        <ChartCard title="Hiring pipeline">
+        {/* <ChartCard title="Hiring pipeline">
           <HiringPipelineChart />
-        </ChartCard>
+        </ChartCard> */}
       </div>
     </div>
   )

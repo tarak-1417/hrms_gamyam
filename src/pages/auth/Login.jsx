@@ -28,7 +28,7 @@ const DEMO_ACCOUNTS = DEMO_PORTAL_ROLES.map((role) => {
 const FEATURES = [
   { icon: Users, label: 'Employee management' },
   { icon: Calendar, label: 'Attendance & leave' },
-  { icon: Wallet, label: 'Payroll & payslips' },
+  // { icon: Wallet, label: 'Payroll & payslips' },
 ]
 
 export default function Login() {

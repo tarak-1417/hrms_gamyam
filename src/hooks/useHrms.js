@@ -7,7 +7,13 @@ import {
   addActivity,
   appendAuditLog as appendAuditLogAction,
   updateLeaveStatus as updateLeaveStatusAction,
+  updateLeaveRequest as updateLeaveRequestAction,
   submitLeave as submitLeaveAction,
+  submitReimbursement as submitReimbursementAction,
+  updateReimbursementStatus as updateReimbursementStatusAction,
+  saveLeaveConfiguration as saveLeaveConfigurationAction,
+  upsertHoliday as upsertHolidayAction,
+  deleteHoliday as deleteHolidayAction,
   addEmployee as addEmployeeAction,
   bulkImportEmployees as bulkImportEmployeesAction,
   patchEmployee,
@@ -110,6 +116,84 @@ export function useHrms() {
       return true
     },
     [dispatch, showToast],
+  )
+
+  const submitReimbursement = useCallback(
+    (payload) => {
+      dispatch(submitReimbursementAction(payload))
+      showToast('Reimbursement request submitted')
+      return true
+    },
+    [dispatch, showToast],
+  )
+
+  const updateReimbursementStatus = useCallback(
+    (id, status, reviewerComment = '') => {
+      dispatch(
+        updateReimbursementStatusAction({
+          id,
+          status,
+          reviewerComment,
+          actorName: user?.name,
+          audit: audit(),
+        }),
+      )
+      showToast(`Reimbursement request ${status}`)
+    },
+    [dispatch, showToast, user?.name, audit],
+  )
+
+  const updateLeaveRequest = useCallback(
+    (id, updates) => {
+      dispatch(
+        updateLeaveRequestAction({
+          id,
+          updates,
+          audit: audit(),
+        }),
+      )
+      showToast('Leave request updated')
+    },
+    [dispatch, showToast, audit],
+  )
+
+  const saveLeaveConfiguration = useCallback(
+    (payload) => {
+      dispatch(
+        saveLeaveConfigurationAction({
+          ...payload,
+          audit: audit(),
+        }),
+      )
+      showToast('Leave policy saved')
+    },
+    [dispatch, showToast, audit],
+  )
+
+  const upsertHoliday = useCallback(
+    (holiday) => {
+      dispatch(
+        upsertHolidayAction({
+          holiday,
+          audit: audit(),
+        }),
+      )
+      showToast(holiday?.id ? 'Holiday updated' : 'Holiday added')
+    },
+    [dispatch, showToast, audit],
+  )
+
+  const deleteHoliday = useCallback(
+    (id) => {
+      dispatch(
+        deleteHolidayAction({
+          id,
+          audit: audit(),
+        }),
+      )
+      showToast('Holiday removed')
+    },
+    [dispatch, showToast, audit],
   )
 
   const addEmployee = useCallback(
@@ -597,7 +681,13 @@ export function useHrms() {
     departmentChartData,
     leaveChartData,
     updateLeaveStatus,
+    updateLeaveRequest,
     submitLeave,
+    submitReimbursement,
+    updateReimbursementStatus,
+    saveLeaveConfiguration,
+    upsertHoliday,
+    deleteHoliday,
     addEmployee,
     bulkImportEmployees,
     updateEmployeeProfile,

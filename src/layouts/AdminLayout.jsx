@@ -3,8 +3,6 @@ import {
   LayoutDashboard,
   Users,
   CalendarOff,
-  Wallet,
-  Settings,
 } from 'lucide-react'
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
@@ -13,8 +11,6 @@ const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/employees', icon: Users, label: 'Employees' },
   { to: '/admin/leave', icon: CalendarOff, label: 'Leave Management' },
-  { to: '/admin/payroll', icon: Wallet, label: 'Payroll' },
-  { to: '/admin/settings', icon: Settings, label: 'Settings' },
 ]
 
 const pageTitles = {
@@ -23,8 +19,6 @@ const pageTitles = {
   '/admin/departments': { title: 'Departments', description: 'Organizational structure' },
   '/admin/attendance': { title: 'Attendance', description: "Today's attendance overview" },
   '/admin/leave': { title: 'Leave Management', description: 'Review and approve leave requests' },
-  '/admin/payroll': { title: 'Payroll', description: 'Salary and compensation' },
-  '/admin/settings': { title: 'Settings', description: 'System configuration' },
 }
 
 export default function AdminLayout() {

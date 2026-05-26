@@ -38,10 +38,12 @@ export default function GlobalSearch({
   const role = user?.role || 'employee'
   const defaultPlaceholder =
     role === 'employee'
-      ? 'Search pages, leave, payslips…'
+      ? 'Search pages, reimbursements, payslips, leave…'
       : role === 'superadmin'
         ? 'Search platform, companies…'
-        : 'Search employees, pages, leave…'
+        : role === 'manager'
+          ? 'Search team, profile, leave…'
+          : 'Search employees, reimbursements, pages, leave…'
 
   const results = useMemo(
     () =>

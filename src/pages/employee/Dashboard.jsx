@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom'
 import {
   CalendarOff,
-  Wallet,
   FileText,
   User,
   ChevronRight,
   Sparkles,
   CalendarDays,
   Clock,
+  Receipt,
 } from 'lucide-react'
 import Badge from '../../components/ui/Badge'
 import { useAuth } from '../../hooks/useAuth'
@@ -128,28 +128,22 @@ export default function EmployeeDashboard() {
             </div>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-3 lg:max-w-xl lg:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2 lg:max-w-xl lg:grid-cols-2">
             <QuickAction to="/employee/leave" icon={CalendarOff} label="Apply leave" desc="Request time off" />
-            <QuickAction to="/employee/payslips" icon={Wallet} label="Payslips" desc="Salary statements" />
             <QuickAction to="/employee/profile" icon={User} label="My profile" desc="Personal details" />
+            <QuickAction to="/employee/reimbursements" icon={Receipt} label="Reimbursements" desc="Submit expenses" />
+            <QuickAction to="/employee/payslips" icon={FileText} label="Payslips" desc="Salary slips" />
           </div>
         </div>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <KpiCard
           icon={CalendarOff}
           label="Total leave balance"
           value={totalLeave}
           hint="CL + SL + EL combined"
           accent="from-orange-100 to-primary-light"
-        />
-        <KpiCard
-          icon={Wallet}
-          label="Last payslip"
-          value={stats?.lastPayslip || '—'}
-          hint="Open Payslips to view"
-          accent="from-amber-50 to-primary-light"
         />
         <KpiCard
           icon={FileText}

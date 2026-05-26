@@ -165,7 +165,7 @@ export function queryAppKnowledge(message, k) {
 
   if (/^help$|what can you|what do you know|capabilities/.test(q)) {
     return withNav(
-      `I have live access to your Gamyam HRMS data:\n• ${k.employees.length} employee(s) in scope\n• ${k.pendingLeaves.length} pending leave(s)\n• ${k.presentToday} present today, ${k.lateToday} late, ${k.onLeaveToday} on leave\n• ${k.payrollRecords.length} payroll record(s), ${k.activeJobs.length} active job(s)\n• ${k.documentTemplates.length} document template(s)\n\nAsk about anyone by name, departments, salary, attendance, or say "open payroll".`,
+      `I have live access to your Gamyam HRMS data:\n• ${k.employees.length} employee(s) in scope\n• ${k.pendingLeaves.length} pending leave(s)\n• ${k.presentToday} present today, ${k.lateToday} late, ${k.onLeaveToday} on leave\n• ${k.activeJobs.length} active job(s)\n• ${k.documentTemplates.length} document template(s)\n\nAsk about anyone by name, departments, attendance, leave, or documents.`,
       message,
       role,
     )
@@ -181,7 +181,6 @@ export function queryAppKnowledge(message, k) {
           : 'No payroll record on file yet.',
         message,
         role,
-        ['/employee/payslips'],
       )
     }
     if (/my task|todo|assigned/.test(q)) {
@@ -212,7 +211,6 @@ export function queryAppKnowledge(message, k) {
           : `${named.name} has no payroll row on file.`,
         message,
         role,
-        role === 'admin' ? ['/admin/payroll'] : [],
       )
     }
     if (/attendance|check in|present|late|today/.test(q)) {
@@ -356,7 +354,6 @@ export function queryAppKnowledge(message, k) {
       `April 2026 payroll total (in scope): ${formatInr(k.payrollTotal)} across ${k.payrollRecords.length} employees.`,
       message,
       role,
-      [role === 'admin' ? '/admin/payroll' : '/employee/payslips'],
     )
   }
   if (/highest paid|top salary|maximum salary/.test(q)) {
@@ -367,7 +364,6 @@ export function queryAppKnowledge(message, k) {
       `Highest net pay: ${emp?.name || top.employeeId} at ${formatInr(top.net)}.`,
       message,
       role,
-      ['/admin/payroll'],
     )
   }
 
@@ -442,7 +438,7 @@ export function queryAppKnowledge(message, k) {
       }`,
       message,
       role,
-      [role === 'admin' ? '/admin/settings' : '/employee/attendance'],
+      role === 'employee' ? ['/employee/attendance'] : [],
     )
   }
 
@@ -497,7 +493,7 @@ export function queryAppKnowledge(message, k) {
     if (/dashboard|summary|overview|stats/.test(q)) {
       const rate = s.totalEmployees ? Math.round((s.presentToday / s.totalEmployees) * 100) : 0
       return withNav(
-        `HR snapshot:\n• Employees: ${s.totalEmployees}\n• Present today: ${s.presentToday} (${rate}%)\n• On leave: ${s.onLeave}\n• Pending leaves: ${s.pendingLeaves}\n• Payroll total: ${formatInr(k.payrollTotal)}\n• Active jobs: ${k.activeJobs.length}`,
+        `HR snapshot:\n• Employees: ${s.totalEmployees}\n• Present today: ${s.presentToday} (${rate}%)\n• On leave: ${s.onLeave}\n• Pending leaves: ${s.pendingLeaves}\n• Active jobs: ${k.activeJobs.length}`,
         message,
         role,
         ['/admin'],
@@ -613,7 +609,7 @@ export function getFallbackFromKnowledge(k, message, role) {
     return { text: 'I can take you to the right page:', actions: nav }
   }
   return {
-    text: `I have access to ${k.employees.length} employees, ${k.pendingLeaves.length} pending leaves, attendance, payroll, jobs, and documents. Try:\n• "Who is on leave today?"\n• "Tell me about Arjun Mehta"\n• "Total payroll"\n• "Open employees"`,
+    text: `I have access to ${k.employees.length} employees, ${k.pendingLeaves.length} pending leaves, attendance, jobs, and documents. Try:\n• "Who is on leave today?"\n• "Tell me about Arjun Mehta"\n• "Pending leaves"\n• "Open employees"`,
     actions: getBrowseMenuActions(role, 5),
   }
 }

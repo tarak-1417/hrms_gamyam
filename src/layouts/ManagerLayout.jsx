@@ -3,16 +3,29 @@ import {
   Users,
   CalendarOff,
   GitBranch,
+  ClipboardList,
+  FileText,
+  FolderOpen,
 } from 'lucide-react'
 import HrLayout from './HrLayout'
 
-const navItems = [
+const teamNav = [
   { to: '/manager', icon: LayoutDashboard, label: 'Home' },
-  { to: '/manager/team', icon: Users, label: 'My Team' },
   { to: '/manager/reporting', icon: GitBranch, label: 'Reporting tree' },
-  { to: '/manager/leave', icon: CalendarOff, label: 'Leave' },
+  { to: '/manager/leave', icon: ClipboardList, label: 'Leave approvals' },
+]
+
+const personalNav = [
+  { to: '/manager/my-leave', icon: CalendarOff, label: 'Apply leave' },
+  { to: '/manager/payslips', icon: FileText, label: 'Payslips' },
+  { to: '/manager/documents', icon: FolderOpen, label: 'My documents' },
+]
+
+const navSections = [
+  { label: 'Team', items: teamNav },
+  { label: 'Personal', items: personalNav },
 ]
 
 export default function ManagerLayout() {
-  return <HrLayout navItems={navItems} portalLabel="Manager Portal" />
+  return <HrLayout navSections={navSections} portalLabel="Manager Portal" profilePath="/manager/profile" />
 }

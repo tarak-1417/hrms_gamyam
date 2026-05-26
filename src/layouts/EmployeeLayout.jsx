@@ -3,8 +3,9 @@ import {
   LayoutDashboard,
   CalendarOff,
   GitBranch,
-  FileText,
   FolderOpen,
+  FileText,
+  Receipt,
 } from 'lucide-react'
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
@@ -15,8 +16,9 @@ import useMobileNav from '../hooks/useMobileNav'
 const navItems = [
   { to: '/employee', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/employee/leave', icon: CalendarOff, label: 'Leave' },
-  { to: '/employee/reporting', icon: GitBranch, label: 'My reporting' },
+  { to: '/employee/reimbursements', icon: Receipt, label: 'Reimbursements' },
   { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
+  { to: '/employee/reporting', icon: GitBranch, label: 'My reporting' },
   { to: '/employee/documents', icon: FolderOpen, label: 'Documents' },
 ]
 
@@ -24,8 +26,9 @@ const pageTitles = {
   '/employee': { title: 'My Dashboard', description: 'Welcome back!' },
   '/employee/profile': { title: 'My Profile', description: 'Personal information' },
   '/employee/leave': { title: 'Leave & Holidays', description: 'Balances, holidays, and leave requests' },
+  '/employee/reimbursements': { title: 'Reimbursements', description: 'Expense claims and approval status' },
+  '/employee/payslips': { title: 'Payslips', description: 'Monthly salary slips and downloads' },
   '/employee/reporting': { title: 'My reporting', description: 'Your manager and reporting chain' },
-  '/employee/payslips': { title: 'Payslips', description: 'View salary statements' },
   '/employee/documents': { title: 'Documents', description: 'HR documents & files' },
 }
 

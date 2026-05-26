@@ -13,11 +13,13 @@ export const selectAdminStats = createSelector(selectHrms, (hrms) => {
   const present = hrms.attendanceRecords.filter((a) => a.status === 'present').length
   const onLeave = hrms.attendanceRecords.filter((a) => a.status === 'on-leave').length
   const pendingLeaves = hrms.leaveRequests.filter((l) => l.status === 'pending').length
+  const pendingReimbursements = (hrms.reimbursementRequests || []).filter((r) => r.status === 'pending').length
   return {
     totalEmployees: total,
     presentToday: present,
     onLeave,
     pendingLeaves,
+    pendingReimbursements,
     newHires: hrms.employees.filter((e) => e.joinDate >= '2026-01-01').length,
   }
 })

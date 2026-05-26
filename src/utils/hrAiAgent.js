@@ -74,14 +74,14 @@ function greetingReply(ctx) {
           : 'your HR profile and leave'
 
   return reply(
-    `Hi ${ctx.name?.split(' ')[0] || 'there'}! I'm Gamyam AI with live access to ${scope}. Ask anything—e.g. "who is on leave", "Arjun Mehta salary", "pending leaves", or "open payroll".`,
+    `Hi ${ctx.name?.split(' ')[0] || 'there'}! I'm Gamyam AI with live access to ${scope}. Ask anything—e.g. "who is on leave", "Arjun Mehta details", "pending leaves", or "open employees".`,
     nav.length ? nav : undefined,
   )
 }
 
 function helpReply(ctx) {
   return reply(
-    'I can answer from real app data (employees, attendance, leave, payroll, jobs, documents) and open pages for you. Pick below or ask in your own words.',
+    'I can answer from real app data (employees, attendance, leave, jobs, documents) and open pages for you. Pick below or ask in your own words.',
     getBrowseMenuActions(ctx.portalRole, 8),
   )
 }
@@ -130,7 +130,7 @@ export async function getAiReply(message, ctx) {
       const knowledgeJson = buildKnowledgeSummaryForPrompt(k)
       const system = `You are Gamyam HRMS AI assistant for ${role} user "${ctx.name}".
 Answer ONLY using the JSON application data below. Be concise, friendly, and factual.
-If the user wants to see a screen or full list, tell them you can open it and mention the page name (Employees, Leave, Payroll, Attendance, etc.).
+If the user wants to see a screen or full list, tell them you can open it and mention the page name (Employees, Leave, Attendance, Documents, etc.).
 Never invent employees or numbers not in the data.
 
 APPLICATION DATA:

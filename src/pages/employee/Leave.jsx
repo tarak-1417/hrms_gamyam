@@ -1,10 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CalendarDays, PartyPopper, Flag, Star, Info } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import DatePicker from '../../components/ui/DatePicker'
 import Badge from '../../components/ui/Badge'
+import Modal from '../../components/ui/Modal'
 import { useAuth } from '../../hooks/useAuth'
 import { useHrms } from '../../hooks/useHrms'
+import {
+  countHolidaysByType,
+  getHolidayTypeMeta,
+  isOptionalHolidayType,
+  listHolidayTypes,
+  normalizeHolidayType,
+} from '../../utils/holidayTypes'
 import {
   calculateLeaveDays,
   formatDisplayDate,
@@ -37,17 +45,11 @@ function formatBalanceLabel(remaining, isOptional, optionalLimit) {
   return `${n} ${n === 1 ? 'day' : 'days'} left`
 }
 
-const HOLIDAY_FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'national', label: 'National', icon: Flag },
-  { id: 'festival', label: 'Festivals', icon: PartyPopper },
-  { id: 'optional', label: 'Optional', icon: Star },
-]
-
-const TYPE_META = {
-  national: { label: 'National holiday', badge: 'active', color: 'text-blue-700 bg-blue-50' },
-  festival: { label: 'Festival', badge: 'approved', color: 'text-primary-darker bg-primary-light' },
-  optional: { label: 'Optional holiday', badge: 'pending', color: 'text-amber-800 bg-amber-50' },
+function getHolidayTypeIcon(type) {
+  if (normalizeHolidayType(type) === 'national') return Flag
+  if (normalizeHolidayType(type) === 'festival') return PartyPopper
+  if (normalizeHolidayType(type) === 'optional') return Star
+  return CalendarDays
 }
 
 export default function EmployeeLeave() {
@@ -70,6 +72,7 @@ export default function EmployeeLeave() {
     to: '',
     reason: '',
   })
+  const [leaveModalOpen, setLeaveModalOpen] = useState(false)
 
   const isHalfDay = form.durationType === 'half'
   const [holidayFilter, setHolidayFilter] = useState('all')
@@ -108,20 +111,30 @@ export default function EmployeeLeave() {
     () => [...holidays].sort((a, b) => a.date.localeCompare(b.date)),
     [holidays],
   )
+  const holidayTypes = useMemo(() => listHolidayTypes(sortedHolidays), [sortedHolidays])
+  const counts = useMemo(() => countHolidaysByType(sortedHolidays), [sortedHolidays])
+  const holidayFilters = useMemo(
+    () => [
+      { id: 'all', label: 'All' },
+      ...holidayTypes.map((type) => ({
+        id: type,
+        label: getHolidayTypeMeta(type).shortLabel,
+        icon: getHolidayTypeIcon(type),
+      })),
+    ],
+    [holidayTypes],
+  )
 
   const filteredHolidays = useMemo(() => {
     if (holidayFilter === 'all') return sortedHolidays
-    return sortedHolidays.filter((h) => h.type === holidayFilter)
+    return sortedHolidays.filter((h) => normalizeHolidayType(h.type) === holidayFilter)
   }, [sortedHolidays, holidayFilter])
 
-  const counts = useMemo(
-    () => ({
-      national: sortedHolidays.filter((h) => h.type === 'national').length,
-      festival: sortedHolidays.filter((h) => h.type === 'festival').length,
-      optional: sortedHolidays.filter((h) => h.type === 'optional').length,
-    }),
-    [sortedHolidays],
-  )
+  useEffect(() => {
+    if (holidayFilter !== 'all' && !holidayTypes.includes(holidayFilter)) {
+      setHolidayFilter('all')
+    }
+  }, [holidayFilter, holidayTypes])
 
   const isOptionalClaimed = (holidayId) =>
     myOptionalClaims.some((c) => c.holidayId === holidayId && c.status === 'availed')
@@ -168,6 +181,7 @@ export default function EmployeeLeave() {
       to: '',
       reason: '',
     })
+    setLeaveModalOpen(false)
     setActiveTab('requests')
   }
 
@@ -218,32 +232,34 @@ export default function EmployeeLeave() {
       {activeTab === 'calendar' && (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            <SummaryChip icon={Flag} label="National" count={counts.national} />
-            <SummaryChip icon={PartyPopper} label="Festivals" count={counts.festival} />
-            <SummaryChip
-              icon={Star}
-              label="Optional"
-              count={counts.optional}
-              hint={`${optionalUsed}/${optionalLimit} used`}
-            />
+            {holidayTypes.map((type) => (
+              <SummaryChip
+                key={type}
+                type={type}
+                icon={getHolidayTypeIcon(type)}
+                label={getHolidayTypeMeta(type).shortLabel}
+                count={counts[type] ?? 0}
+                hint={isOptionalHolidayType(type) ? `${optionalUsed}/${optionalLimit} used` : undefined}
+              />
+            ))}
           </div>
 
           <Card
             title="Company holiday list"
-            subtitle={`${leavePolicy.year ?? 2026} · ${filteredHolidays.length} shown · ${sortedHolidays.length} total`}
+            subtitle={`${leavePolicy.year ?? 2026} holiday calendar · ${filteredHolidays.length} shown`}
             className="overflow-hidden"
           >
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap gap-1.5">
-                {HOLIDAY_FILTERS.map(({ id, label, icon: Icon }) => (
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap gap-2">
+                {holidayFilters.map(({ id, label, icon: Icon }) => (
                   <button
                     key={id}
                     type="button"
                     onClick={() => setHolidayFilter(id)}
-                    className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                       holidayFilter === id
                         ? 'bg-primary text-white shadow-sm'
-                        : 'bg-neutral-100 text-muted hover:bg-neutral-200 hover:text-foreground'
+                        : 'border border-border bg-white text-muted hover:border-primary/20 hover:text-foreground'
                     }`}
                   >
                     {Icon && <Icon className="h-3 w-3" />}
@@ -252,7 +268,11 @@ export default function EmployeeLeave() {
                   </button>
                 ))}
               </div>
-              <span className="text-[11px] text-muted">Scroll list for all dates</span>
+              <span className="text-xs text-muted">
+                {filteredHolidays.length === sortedHolidays.length
+                  ? `${sortedHolidays.length} holidays this year`
+                  : `${filteredHolidays.length} matching holidays`}
+              </span>
             </div>
 
             <HolidayListPanel
@@ -287,135 +307,23 @@ export default function EmployeeLeave() {
       )}
 
       {activeTab === 'apply' && (
-        <Card title="Apply for Leave">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground">Duration</label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDurationType('full')}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                    !isHalfDay
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'border border-border bg-white text-muted hover:border-primary hover:text-primary'
-                  }`}
-                >
-                  Full day
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDurationType('half')}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                    isHalfDay
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'border border-border bg-white text-muted hover:border-primary hover:text-primary'
-                  }`}
-                >
-                  Half day
-                </button>
-              </div>
-              {isHalfDay && (
-                <p className="mt-2 text-xs text-muted">
-                  Half-day leave counts as 0.5 day against your balance.
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground">Leave type</label>
-              <select
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-border px-4 py-2 text-sm"
-              >
-                {leaveTypeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-2 text-xs text-muted">
-                {selectedRemaining > 0 ? (
-                  <>
-                    Available:{' '}
-                    <span className="font-semibold text-primary">
-                      {formatBalanceLabel(
-                        selectedRemaining,
-                        form.type === 'Optional Holiday',
-                        optionalLimit,
-                      )}
-                    </span>
-                    {form.type !== 'Optional Holiday' && isHalfDay && (
-                      <span> · half-day uses 0.5 day</span>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-amber-700">No balance left for this leave type</span>
-                )}
-              </p>
-            </div>
-            {isHalfDay ? (
-              <>
-                <DatePicker
-                  label="Date"
-                  required
-                  value={form.from}
-                  onChange={(from) => setForm({ ...form, from, to: from })}
-                  holidays={sortedHolidays}
-                />
-                <div>
-                  <label className="block text-sm font-medium text-foreground">Half-day session</label>
-                  <select
-                    value={form.halfDayPeriod}
-                    onChange={(e) => setForm({ ...form, halfDayPeriod: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-border px-4 py-2 text-sm"
-                  >
-                    {Object.values(HALF_DAY_PERIODS).map((p) => (
-                      <option key={p.value} value={p.value}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <DatePicker
-                  label="From"
-                  required
-                  value={form.from}
-                  onChange={(from) => setForm({ ...form, from })}
-                  holidays={sortedHolidays}
-                  max={form.to || undefined}
-                />
-                <DatePicker
-                  label="To"
-                  required
-                  value={form.to}
-                  onChange={(to) => setForm({ ...form, to })}
-                  holidays={sortedHolidays}
-                  min={form.from || undefined}
-                />
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-foreground">Reason</label>
-              <textarea
-                rows={3}
-                required
-                value={form.reason}
-                onChange={(e) => setForm({ ...form, reason: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-border px-4 py-2 text-sm"
-                placeholder="Brief reason for leave"
-              />
-            </div>
+        <Card
+          title="Apply for Leave"
+          subtitle="Open the popup to submit a new leave request."
+          action={
             <button
-              type="submit"
-              className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-dark"
+              type="button"
+              onClick={() => setLeaveModalOpen(true)}
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark"
             >
-              Submit request
+              Apply Leave
             </button>
-          </form>
+          }
+        >
+          <div className="rounded-xl border border-dashed border-border bg-neutral-50/70 px-4 py-8 text-center">
+            <p className="text-sm font-medium text-foreground">Click the button above to apply for leave.</p>
+            <p className="mt-1 text-xs text-muted">The leave form will open in a popup.</p>
+          </div>
         </Card>
       )}
 
@@ -446,6 +354,152 @@ export default function EmployeeLeave() {
           </div>
         </Card>
       )}
+
+      <Modal
+        open={leaveModalOpen}
+        onClose={() => setLeaveModalOpen(false)}
+        title="Apply for Leave"
+        subtitle="Fill the details below and submit your leave request."
+        wide
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground">Duration</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setDurationType('full')}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                  !isHalfDay
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'border border-border bg-white text-muted hover:border-primary hover:text-primary'
+                }`}
+              >
+                Full day
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurationType('half')}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                  isHalfDay
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'border border-border bg-white text-muted hover:border-primary hover:text-primary'
+                }`}
+              >
+                Half day
+              </button>
+            </div>
+            {isHalfDay && (
+              <p className="mt-2 text-xs text-muted">
+                Half-day leave counts as 0.5 day against your balance.
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground">Leave type</label>
+            <select
+              value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-border px-4 py-2 text-sm"
+            >
+              {leaveTypeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-xs text-muted">
+              {selectedRemaining > 0 ? (
+                <>
+                  Available:{' '}
+                  <span className="font-semibold text-primary">
+                    {formatBalanceLabel(
+                      selectedRemaining,
+                      form.type === 'Optional Holiday',
+                      optionalLimit,
+                    )}
+                  </span>
+                  {form.type !== 'Optional Holiday' && isHalfDay && (
+                    <span> · half-day uses 0.5 day</span>
+                  )}
+                </>
+              ) : (
+                <span className="text-amber-700">No balance left for this leave type</span>
+              )}
+            </p>
+          </div>
+          {isHalfDay ? (
+            <>
+              <DatePicker
+                label="Date"
+                required
+                value={form.from}
+                onChange={(from) => setForm({ ...form, from, to: from })}
+                holidays={sortedHolidays}
+              />
+              <div>
+                <label className="block text-sm font-medium text-foreground">Half-day session</label>
+                <select
+                  value={form.halfDayPeriod}
+                  onChange={(e) => setForm({ ...form, halfDayPeriod: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-border px-4 py-2 text-sm"
+                >
+                  {Object.values(HALF_DAY_PERIODS).map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <DatePicker
+                label="From"
+                required
+                value={form.from}
+                onChange={(from) => setForm({ ...form, from })}
+                holidays={sortedHolidays}
+                max={form.to || undefined}
+              />
+              <DatePicker
+                label="To"
+                required
+                value={form.to}
+                onChange={(to) => setForm({ ...form, to })}
+                holidays={sortedHolidays}
+                min={form.from || undefined}
+              />
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-foreground">Reason</label>
+            <textarea
+              rows={3}
+              required
+              value={form.reason}
+              onChange={(e) => setForm({ ...form, reason: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-border px-4 py-2 text-sm"
+              placeholder="Brief reason for leave"
+            />
+          </div>
+          <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setLeaveModalOpen(false)}
+              className="rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-neutral-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark"
+            >
+              Submit request
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }
@@ -460,15 +514,28 @@ function BalanceCard({ label, value }) {
   )
 }
 
-function SummaryChip({ icon: Icon, label, count, hint }) {
+function SummaryChip({ type, icon: Icon, label, count, hint }) {
+  const meta = getHolidayTypeMeta(type)
   return (
-    <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 shadow-sm">
-      <Icon className="h-4 w-4 shrink-0 text-primary" />
-      <span className="text-sm font-medium text-foreground">{label}</span>
-      <span className="rounded-md bg-primary-light px-1.5 py-0.5 text-xs font-bold tabular-nums text-primary">
-        {count}
-      </span>
-      {hint && <span className="text-[11px] text-muted">{hint}</span>}
+    <div className="min-w-[10rem] rounded-2xl border border-border bg-white px-4 py-3 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${meta.chipClass}`}>
+            <Icon className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">{label}</p>
+            {hint ? (
+              <p className="mt-0.5 text-xs text-muted">{hint}</p>
+            ) : (
+              <p className="mt-0.5 text-xs text-muted">Company holidays</p>
+            )}
+          </div>
+        </div>
+        <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-bold tabular-nums text-foreground">
+          {count}
+        </span>
+      </div>
     </div>
   )
 }
@@ -494,63 +561,70 @@ function HolidayListPanel({ holidays, isOptionalClaimed }) {
 
   if (holidays.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-border py-10 text-center text-sm text-muted">
+      <p className="rounded-2xl border border-dashed border-border bg-neutral-50/60 py-10 text-center text-sm text-muted">
         No holidays in this category
       </p>
     )
   }
 
   return (
-    <div className="max-h-[min(22rem,55vh)] overflow-hidden rounded-xl border border-border bg-neutral-50/80">
-      <div className="grid grid-cols-[4.5rem_1fr_auto] gap-x-2 border-b border-border bg-white/90 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted">
-        <span>Date</span>
-        <span>Holiday</span>
-        <span className="text-right">Type</span>
-      </div>
-      <div className="holiday-list-scroll max-h-[min(20rem,50vh)] overflow-y-auto overscroll-contain">
-        {groups.map(({ monthLabel, items }) => (
-          <div key={monthLabel}>
-            <div className="sticky top-0 z-10 border-b border-border bg-neutral-100/95 px-3 py-1.5 backdrop-blur-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">{monthLabel}</p>
+    <div className="holiday-list-scroll max-h-[min(26rem,60vh)] space-y-4 overflow-y-auto pr-1">
+      {groups.map(({ monthLabel, items }) => (
+        <section key={monthLabel} className="rounded-2xl border border-border bg-white shadow-sm">
+          <div className="sticky top-0 z-10 rounded-t-2xl border-b border-border bg-neutral-50/95 px-4 py-3 backdrop-blur-sm">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">{monthLabel}</p>
+              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-muted shadow-sm">
+                {items.length} {items.length === 1 ? 'holiday' : 'holidays'}
+              </span>
             </div>
-            <ul className="divide-y divide-border/60 bg-white">
-              {items.map((h) => {
-                const meta = TYPE_META[h.type] ?? TYPE_META.national
-                const claimed = h.type === 'optional' && isOptionalClaimed(h.id)
-                const d = new Date(h.date + 'T12:00:00')
-                const shortDate = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
-                return (
-                  <li
-                    key={h.id}
-                    className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-x-2 px-3 py-2 text-sm transition hover:bg-primary-light/20"
-                  >
-                    <span className="text-xs font-medium tabular-nums text-muted">{shortDate}</span>
-                    <span className="min-w-0 truncate font-medium text-foreground" title={h.name}>
-                      {h.name}
-                    </span>
-                    <div className="flex shrink-0 items-center justify-end gap-1">
-                      <span
-                        className={`max-w-[5.5rem] truncate rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight ${meta.color}`}
-                        title={meta.label}
-                      >
-                        {h.type === 'national' ? 'National' : h.type === 'festival' ? 'Festival' : 'Optional'}
-                      </span>
-                      {claimed && (
-                        <span className="rounded bg-primary px-1 py-0.5 text-[10px] font-semibold text-white">
-                          ✓
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
           </div>
-        ))}
-      </div>
-      <p className="border-t border-border bg-white px-3 py-1.5 text-center text-[10px] text-muted">
-        {holidays.length} {holidays.length === 1 ? 'holiday' : 'holidays'}
-      </p>
+          <ul className="divide-y divide-border/70">
+            {items.map((h) => {
+              const meta = getHolidayTypeMeta(h.type)
+              const claimed = isOptionalHolidayType(h.type) && isOptionalClaimed(h.id)
+              const d = new Date(h.date + 'T12:00:00')
+              const dayNumber = d.toLocaleDateString('en-IN', { day: 'numeric' })
+              const dayLabel = d.toLocaleDateString('en-IN', { weekday: 'short' })
+              const fullDate = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+              return (
+                <li
+                  key={h.id}
+                  className="flex items-center gap-3 px-4 py-3 transition hover:bg-primary-light/15"
+                >
+                  <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl border border-border bg-neutral-50">
+                    <span className="text-lg font-bold leading-none text-foreground">{dayNumber}</span>
+                    <span className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                      {dayLabel}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground" title={h.name}>
+                      {h.name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">{fullDate}</p>
+                  </div>
+
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${meta.color}`}
+                      title={meta.label}
+                    >
+                      {meta.shortLabel}
+                    </span>
+                    {claimed && (
+                      <span className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-white">
+                        Used
+                      </span>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ))}
     </div>
   )
 }

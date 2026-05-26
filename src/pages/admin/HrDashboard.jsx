@@ -1,17 +1,13 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Users, CalendarOff, IndianRupee, Plus, Briefcase, Upload } from 'lucide-react'
-import analytics from '../../data/analytics.json'
+import { Users, CalendarOff, Plus, Briefcase, Upload, Receipt } from 'lucide-react'
 import { useHrms } from '../../hooks/useHrms'
 import KpiCard from '../../components/hr/KpiCard'
 import ActivityFeed from '../../components/hr/ActivityFeed'
 import PostJobModal from '../../components/hr/PostJobModal'
 import BulkImportJobsModal from '../../components/hr/BulkImportJobsModal'
-import Badge from '../../components/ui/Badge'
 import ChartCard from '../../components/charts/ChartCard'
 import DepartmentChart from '../../components/charts/DepartmentChart'
 import LeaveDistributionChart from '../../components/charts/LeaveDistributionChart'
-import PayrollTrendChart from '../../components/charts/PayrollTrendChart'
 import HiringPipelineChart from '../../components/charts/HiringPipelineChart'
 
 export default function HrDashboard() {
@@ -48,7 +44,7 @@ export default function HrDashboard() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm">
+      {/* <div className="rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Briefcase className="h-4 w-4 text-primary" />
@@ -77,16 +73,16 @@ export default function HrDashboard() {
             ))}
           </div>
         )}
-      </div>
+      </div> */}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <KpiCard icon={Users} label="Total employees" value={adminStats.totalEmployees} to="/admin/employees" />
         <KpiCard icon={CalendarOff} label="Pending leaves" value={adminStats.pendingLeaves} to="/admin/leave" />
         <KpiCard
-          icon={IndianRupee}
-          label="Payroll (May)"
-          value={`₹${analytics.payrollMonthly.at(-1).amount}L`}
-          to="/admin/payroll"
+          icon={Receipt}
+          label="Pending reimbursements"
+          value={adminStats.pendingReimbursements}
+          to="/admin/reimbursements"
         />
       </div>
 
@@ -101,16 +97,13 @@ export default function HrDashboard() {
         <ActivityFeed />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <ChartCard title="Payroll trend">
-          <PayrollTrendChart />
-        </ChartCard>
+      {/* <div className="grid gap-5">
         <ChartCard title="Recruitment pipeline">
           <HiringPipelineChart />
         </ChartCard>
-      </div>
+      </div> */}
 
-      <div className="rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm">
+      {/* <div className="rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">All job postings</h2>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -138,7 +131,7 @@ export default function HrDashboard() {
             </tbody>
           </table>
         </div>
-      </div>
+      </div> */}
 
       <PostJobModal
         open={postJobOpen}

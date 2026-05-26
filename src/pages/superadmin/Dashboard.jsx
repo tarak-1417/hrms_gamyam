@@ -4,7 +4,6 @@ import {
   Users,
   Network,
   UserCog,
-  Settings,
   Shield,
   ArchiveRestore,
 } from 'lucide-react'
@@ -20,7 +19,6 @@ const quickLinks = [
   { to: '/superadmin/companies', icon: Building2, label: 'Organizations', desc: 'Create & manage tenants' },
   { to: '/superadmin/users', icon: UserCog, label: 'Users & access', desc: 'HR admins, roles, passwords' },
   { to: '/superadmin/organization', icon: Network, label: 'Org setup', desc: 'Departments, branches, reporting' },
-  { to: '/superadmin/settings', icon: Settings, label: 'Global settings', desc: 'Platform configuration' },
   { to: '/superadmin/permissions', icon: Shield, label: 'Permissions', desc: 'Super Admin capabilities' },
   { to: '/superadmin/trash', icon: ArchiveRestore, label: 'Recycle bin', desc: 'Restore deleted records' },
   { to: '/superadmin/hr/employees', icon: Users, label: 'HR modules', desc: 'Full HRMS access' },

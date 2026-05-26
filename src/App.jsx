@@ -13,8 +13,6 @@ import EmployeeLayout from './layouts/EmployeeLayout'
 const HrDashboard = lazy(() => import('./pages/admin/HrDashboard'))
 const Employees = lazy(() => import('./pages/admin/Employees'))
 const Departments = lazy(() => import('./pages/shared/Departments'))
-const Payroll = lazy(() => import('./pages/admin/Payroll'))
-const Settings = lazy(() => import('./pages/admin/Settings'))
 const Recruitment = lazy(() => import('./pages/admin/Recruitment'))
 const ManagerReports = lazy(() => import('./pages/manager/Reports'))
 
@@ -24,6 +22,8 @@ const HrLeave = lazy(() => import('./pages/shared/HrLeave'))
 const DocumentTemplates = lazy(() => import('./pages/shared/DocumentTemplates'))
 const AuditLogs = lazy(() => import('./pages/shared/AuditLogs'))
 const ReportingTree = lazy(() => import('./pages/shared/ReportingTree'))
+const Payslips = lazy(() => import('./pages/employee/Payslips'))
+const Reimbursements = lazy(() => import('./pages/shared/Reimbursements'))
 
 const SuperAdminDashboard = lazy(() => import('./pages/superadmin/Dashboard'))
 const Companies = lazy(() => import('./pages/superadmin/Companies'))
@@ -33,14 +33,12 @@ const SuperAdminAnalytics = lazy(() => import('./pages/superadmin/Analytics'))
 const Billing = lazy(() => import('./pages/superadmin/Billing'))
 const Organization = lazy(() => import('./pages/superadmin/Organization'))
 const PlatformUsers = lazy(() => import('./pages/superadmin/PlatformUsers'))
-const GlobalSettings = lazy(() => import('./pages/superadmin/GlobalSettings'))
 const SuperAdminPermissions = lazy(() => import('./pages/superadmin/Permissions'))
 const DeletedRecordsRecovery = lazy(() => import('./pages/superadmin/DeletedRecordsRecovery'))
 
 const EmployeeDashboard = lazy(() => import('./pages/employee/Dashboard'))
 const Profile = lazy(() => import('./pages/employee/Profile'))
 const EmployeeLeave = lazy(() => import('./pages/employee/Leave'))
-const Payslips = lazy(() => import('./pages/employee/Payslips'))
 const Documents = lazy(() => import('./pages/employee/Documents'))
 const AiAssistant = lazy(() => import('./pages/employee/AiAssistant'))
 
@@ -80,6 +78,10 @@ export default function App() {
             <Route path="team" element={<ManagerTeam />} />
             <Route path="departments" element={<Departments />} />
             <Route path="leave" element={<HrLeave />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="my-leave" element={<EmployeeLeave />} />
+            <Route path="payslips" element={<Payslips />} />
+            <Route path="documents" element={<Documents />} />
             <Route path="reporting" element={<ReportingTree />} />
             <Route path="reports" element={<ManagerReports />} />
           </Route>
@@ -96,10 +98,13 @@ export default function App() {
             <Route path="employees" element={<Employees />} />
             <Route path="departments" element={<Departments />} />
             <Route path="leave" element={<HrLeave />} />
-            <Route path="payroll" element={<Payroll />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="my-leave" element={<EmployeeLeave />} />
+            <Route path="payslips" element={<Payslips />} />
+            <Route path="reimbursements" element={<Reimbursements />} />
+            <Route path="my-documents" element={<Documents />} />
             <Route path="recruitment" element={<Recruitment />} />
             <Route path="reports" element={<ManagerReports />} />
-            <Route path="settings" element={<Settings />} />
             <Route path="documents" element={<DocumentTemplates />} />
             <Route path="reporting" element={<ReportingTree />} />
             <Route path="audit-logs" element={<AuditLogs />} />
@@ -119,7 +124,6 @@ export default function App() {
             <Route path="companies" element={<Companies />} />
             <Route path="users" element={<PlatformUsers />} />
             <Route path="permissions" element={<SuperAdminPermissions />} />
-            <Route path="settings" element={<GlobalSettings />} />
             <Route path="subscriptions" element={<Subscriptions />} />
             <Route path="monitoring" element={<Monitoring />} />
             <Route path="analytics" element={<SuperAdminAnalytics />} />
@@ -132,10 +136,8 @@ export default function App() {
               <Route path="employees" element={<Employees />} />
               <Route path="reporting" element={<ReportingTree />} />
               <Route path="leave" element={<HrLeave />} />
-              <Route path="payroll" element={<Payroll />} />
               <Route path="recruitment" element={<Recruitment />} />
               <Route path="reports" element={<ManagerReports />} />
-              <Route path="settings" element={<Settings />} />
               <Route path="audit-logs" element={<AuditLogs />} />
             </Route>
           </Route>
@@ -151,8 +153,9 @@ export default function App() {
             <Route index element={<EmployeeDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="leave" element={<EmployeeLeave />} />
-            <Route path="reporting" element={<ReportingTree />} />
+            <Route path="reimbursements" element={<Reimbursements />} />
             <Route path="payslips" element={<Payslips />} />
+            <Route path="reporting" element={<ReportingTree />} />
             <Route path="documents" element={<Documents />} />
             <Route path="ai" element={<AiAssistant />} />
           </Route>

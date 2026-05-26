@@ -4,20 +4,23 @@ export const NAV_BY_ROLE = {
   admin: [
     { label: 'Dashboard', path: '/admin', keywords: ['dashboard', 'home', 'overview', 'hr dashboard'] },
     { label: 'Employees', path: '/admin/employees', keywords: ['employee', 'staff', 'people', 'hire', 'bulk import'] },
-    { label: 'Leave', path: '/admin/leave', keywords: ['leave', 'approval', 'pending leave', 'vacation'] },
-    { label: 'Payroll', path: '/admin/payroll', keywords: ['payroll', 'salary', 'payslip', 'net pay'] },
+    { label: 'Leave approvals', path: '/admin/leave', keywords: ['leave approval', 'pending leave', 'approve leave', 'team leave'] },
+    { label: 'Reimbursements', path: '/admin/reimbursements', keywords: ['reimbursement', 'expense', 'claim', 'approval'] },
     { label: 'Recruitment', path: '/admin/recruitment', keywords: ['recruitment', 'job', 'hiring', 'posting'] },
-    { label: 'Documents', path: '/admin/documents', keywords: ['document', 'template', 'letter'] },
+    { label: 'HR documents', path: '/admin/documents', keywords: ['document template', 'template', 'letter', 'hr document'] },
     { label: 'Departments', path: '/admin/departments', keywords: ['department', 'team', 'org'] },
     { label: 'Reports', path: '/admin/reports', keywords: ['report', 'analytics', 'chart'] },
     { label: 'Roles', path: '/admin/roles', keywords: ['role', 'permission', 'access'] },
-    { label: 'Settings', path: '/admin/settings', keywords: ['setting', 'company', 'policy', 'geo'] },
   ],
   manager: [
     { label: 'Home', path: '/manager', keywords: ['dashboard', 'home', 'overview'] },
     { label: 'My Team', path: '/manager/team', keywords: ['team', 'member', 'engineering'] },
     { label: 'Department', path: '/manager/departments', keywords: ['department', 'org'] },
-    { label: 'Leave', path: '/manager/leave', keywords: ['leave', 'approval', 'pending'] },
+    { label: 'Leave approvals', path: '/manager/leave', keywords: ['leave approval', 'pending leave', 'approve leave', 'team leave'] },
+    { label: 'My profile', path: '/manager/profile', keywords: ['profile', 'personal', 'my details'] },
+    { label: 'Apply leave', path: '/manager/my-leave', keywords: ['my leave', 'leave apply', 'apply leave', 'holiday', 'balance'] },
+    { label: 'Payslips', path: '/manager/payslips', keywords: ['payslip', 'salary', 'pay', 'payroll'] },
+    { label: 'My documents', path: '/manager/documents', keywords: ['document', 'letter', 'files'] },
     { label: 'Reports', path: '/manager/reports', keywords: ['report', 'analytics'] },
   ],
   superadmin: [
@@ -26,7 +29,6 @@ export const NAV_BY_ROLE = {
     { label: 'Users', path: '/superadmin/users', keywords: ['user', 'admin', 'password', 'role'] },
     { label: 'Org setup', path: '/superadmin/organization', keywords: ['department', 'branch', 'designation'] },
     { label: 'Permissions', path: '/superadmin/permissions', keywords: ['permission', 'access'] },
-    { label: 'Global settings', path: '/superadmin/settings', keywords: ['settings', 'global', 'platform'] },
     { label: 'Audit logs', path: '/superadmin/audit-logs', keywords: ['audit', 'log', 'security', 'monitor'] },
     { label: 'Recycle bin', path: '/superadmin/trash', keywords: ['trash', 'delete', 'restore', 'recovery', 'recycle'] },
     { label: 'HR employees', path: '/superadmin/hr/employees', keywords: ['employee', 'hr', 'staff'] },
@@ -40,16 +42,17 @@ export const NAV_BY_ROLE = {
     { label: 'Dashboard', path: '/employee', keywords: ['dashboard', 'home'] },
     { label: 'Profile', path: '/employee/profile', keywords: ['profile', 'personal'] },
     { label: 'Leave', path: '/employee/leave', keywords: ['leave', 'holiday', 'balance'] },
-    { label: 'Payslips', path: '/employee/payslips', keywords: ['payslip', 'salary', 'payroll'] },
+    { label: 'Reimbursements', path: '/employee/reimbursements', keywords: ['reimbursement', 'expense', 'claim'] },
+    { label: 'Payslips', path: '/employee/payslips', keywords: ['payslip', 'salary', 'pay', 'payroll'] },
     { label: 'Documents', path: '/employee/documents', keywords: ['document'] },
   ],
 }
 
 export const CHAT_STARTERS = {
-  admin: ['HR summary', 'Who is on leave?', 'Pending leaves', 'Arjun Mehta salary'],
-  manager: ['Team summary', 'Who is late?', 'Pending approvals', 'List my team'],
+  admin: ['HR summary', 'Pending reimbursements', 'Pending leaves', 'Employees'],
+  manager: ['Team summary', 'Pending approvals', 'My profile', 'Apply leave'],
   superadmin: ['Platform summary', 'List companies', 'MRR & uptime', 'Open monitoring'],
-  employee: ['My salary', 'Leave balance', 'My leave requests', 'My profile'],
+  employee: ['My reimbursement status', 'My salary', 'My payslip', 'Leave balance'],
 }
 
 export function findNavActions(query, role, limit = 2) {

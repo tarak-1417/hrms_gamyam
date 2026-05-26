@@ -11,7 +11,7 @@ import {
   HiX,
 } from 'react-icons/hi'
 import Badge from '../ui/Badge'
-import { getAssignableEmployees } from '../../utils/reportingTreeUtils'
+import { getAncestorIds, getAssignableEmployees } from '../../utils/reportingTreeUtils'
 
 function DetailRow({ icon: Icon, label, value }) {
   return (
@@ -41,6 +41,11 @@ export default function ReportingEmployeePanel({
   const assignableCount = employee
     ? getAssignableEmployees(employees, employee.id).length
     : 0
+  const higherAuthorities = employee
+    ? getAncestorIds(employee.id, employees)
+        .map((id) => employees.find((item) => item.id === id))
+        .filter(Boolean)
+    : []
 
   return (
     <AnimatePresence mode="wait">
@@ -115,6 +120,38 @@ export default function ReportingEmployeePanel({
               <DetailRow icon={HiUser} label="Reporting manager" value={managerName} />
               <DetailRow icon={HiMail} label="Email" value={employee.email} />
               <DetailRow icon={HiPhone} label="Phone" value={employee.phone} />
+            </div>
+
+            <div className="mt-5">
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+                <HiOfficeBuilding className="h-4 w-4" />
+                Higher authorities ({higherAuthorities.length})
+              </p>
+              {higherAuthorities.length ? (
+                <ul className="space-y-1.5">
+                  {higherAuthorities.map((authority) => (
+                    <li key={authority.id}>
+                      <button
+                        type="button"
+                        onClick={() => onSelectEmployee?.(authority.id)}
+                        className="flex w-full items-center gap-2 rounded-lg border border-neutral-100 px-3 py-2 text-left transition-colors hover:bg-primary-light/30"
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-800 text-xs font-bold text-white">
+                          {authority.avatar || authority.name?.charAt(0)}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium text-foreground">{authority.name}</span>
+                          <span className="block text-xs text-muted">
+                            {authority.role} · {authority.department}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted">No higher authorities</p>
+              )}
             </div>
 
             <div className="mt-5">

@@ -3,7 +3,14 @@ import { LogOut, X } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import BrandLogo from '../BrandLogo'
 
-export default function HrSidebar({ navItems, navSections, portalLabel, mobileOpen, onClose }) {
+export default function HrSidebar({
+  navItems,
+  navSections,
+  portalLabel,
+  profilePath,
+  mobileOpen,
+  onClose,
+}) {
   const { user, logout } = useAuth()
   const sections = navSections ?? [{ label: null, items: navItems ?? [] }]
 
@@ -68,15 +75,37 @@ export default function HrSidebar({ navItems, navSections, portalLabel, mobileOp
       </nav>
 
       <div className="shrink-0 border-t border-white/10 bg-black/30 p-4">
-        <div className="mb-3 flex items-center gap-3 rounded-xl bg-white/5 px-3 py-3 ring-1 ring-white/10">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold">
-            {user?.name?.charAt(0)}
+        {profilePath ? (
+          <NavLink
+            to={profilePath}
+            onClick={handleNav}
+            className={({ isActive }) =>
+              `mb-3 flex items-center gap-3 rounded-xl px-3 py-3 ring-1 transition ${
+                isActive
+                  ? 'bg-primary text-white ring-primary/40 shadow-lg shadow-primary/20'
+                  : 'bg-white/5 ring-white/10 hover:bg-white/10'
+              }`
+            }
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold">
+              {user?.name?.charAt(0)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{user?.name}</p>
+              <p className="truncate text-xs capitalize text-white/45">{user?.role}</p>
+            </div>
+          </NavLink>
+        ) : (
+          <div className="mb-3 flex items-center gap-3 rounded-xl bg-white/5 px-3 py-3 ring-1 ring-white/10">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold">
+              {user?.name?.charAt(0)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{user?.name}</p>
+              <p className="truncate text-xs capitalize text-white/45">{user?.role}</p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{user?.name}</p>
-            <p className="truncate text-xs capitalize text-white/45">{user?.role}</p>
-          </div>
-        </div>
+        )}
         <button
           type="button"
           onClick={logout}

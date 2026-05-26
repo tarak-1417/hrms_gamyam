@@ -280,6 +280,53 @@
     { "id": 5, "employeeId": "EMP005", "month": "April 2026", "basic": 52000, "allowances": 9000, "deductions": 6100, "net": 54900 },
     { "id": 6, "employeeId": "EMP006", "month": "April 2026", "basic": 48000, "allowances": 8500, "deductions": 5500, "net": 51000 }
   ],
+  "reimbursementRequests": [
+    {
+      "id": 21,
+      "employeeId": "EMP001",
+      "employeeName": "Aarav Sharma",
+      "requestFor": "Aarav Sharma",
+      "amount": 2450,
+      "expenseType": "Travel",
+      "expenseDate": "2026-05-12",
+      "supportingDocuments": ["uber-receipt-may12.pdf", "hotel-invoice-may12.pdf"],
+      "comments": "Client visit travel from Hyderabad to Secunderabad.",
+      "status": "pending",
+      "submittedAt": "2026-05-13"
+    },
+    {
+      "id": 22,
+      "employeeId": "EMP001",
+      "employeeName": "Aarav Sharma",
+      "requestFor": "Aarav Sharma",
+      "amount": 1800,
+      "expenseType": "Meals",
+      "expenseDate": "2026-04-24",
+      "supportingDocuments": ["client-dinner-apr24.jpg"],
+      "comments": "Dinner expense during customer meeting.",
+      "status": "approved",
+      "submittedAt": "2026-04-25",
+      "reviewedAt": "2026-04-27",
+      "reviewedBy": "Sneha Reddy",
+      "reviewerComment": "Approved as per travel and client entertainment policy."
+    },
+    {
+      "id": 23,
+      "employeeId": "EMP004",
+      "employeeName": "Nikhil Rao",
+      "requestFor": "Nikhil Rao",
+      "amount": 950,
+      "expenseType": "Internet",
+      "expenseDate": "2026-05-05",
+      "supportingDocuments": ["broadband-bill-may.pdf"],
+      "comments": "Monthly home internet reimbursement for remote work.",
+      "status": "rejected",
+      "submittedAt": "2026-05-06",
+      "reviewedAt": "2026-05-07",
+      "reviewedBy": "Sneha Reddy",
+      "reviewerComment": "Rejected because the bill amount exceeds the policy cap."
+    }
+  ],
   "employeeTasks": [
     { "id": 1, "title": "Complete security training", "due": "2026-05-22", "priority": "High", "done": false },
     { "id": 2, "title": "Submit timesheet for week 20", "due": "2026-05-19", "priority": "Medium", "done": true },

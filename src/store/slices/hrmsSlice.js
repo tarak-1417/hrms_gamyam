@@ -45,6 +45,10 @@ function appendAuditLogEntry(state, entry) {
   }
 }
 
+function sortHolidaysByDate(list = []) {
+  return [...list].sort((a, b) => a.date.localeCompare(b.date))
+}
+
 const hrmsSlice = createSlice({
   name: 'hrms',
   initialState: getInitialHrmsState(),
@@ -78,6 +82,48 @@ const hrmsSlice = createSlice({
       state.leaveRequests = state.leaveRequests.map((l) =>
         l.id === id ? { ...l, status } : l,
       )
+    },
+    updateLeaveRequest(state, action) {
+      const { id, updates, audit } = action.payload
+      const leave = state.leaveRequests.find((l) => l.id === id)
+      if (!leave) return
+
+      const durationType = updates.durationType ?? leave.durationType ?? 'full'
+      const from = updates.from ?? leave.from
+      const to = durationType === 'half' ? from : updates.to ?? leave.to
+      const days = calculateLeaveDays({ from, to, durationType })
+
+      state.leaveRequests = state.leaveRequests.map((l) => {
+        if (l.id !== id) return l
+        const next = {
+          ...l,
+          ...updates,
+          from,
+          to,
+          days,
+          durationType,
+        }
+        if (durationType === 'half') {
+          next.halfDayPeriod = updates.halfDayPeriod ?? l.halfDayPeriod ?? 'first_half'
+        } else {
+          delete next.halfDayPeriod
+        }
+        return next
+      })
+
+      prependActivity(state, 'leave', leave.employeeName, `leave request updated`)
+      if (audit) {
+        appendAuditLogEntry(state, {
+          ...audit,
+          action: 'Updated leave request',
+          category: 'leave',
+          scope: 'hr',
+          targetType: 'leave',
+          targetId: id,
+          targetLabel: leave.employeeName,
+          details: `${updates.type ?? leave.type} · ${days} day(s)`,
+        })
+      }
     },
     submitLeave(state, action) {
       const {
@@ -120,6 +166,160 @@ const hrmsSlice = createSlice({
         ? `half day (${halfDayPeriod === 'second_half' ? 'afternoon' : 'morning'})`
         : `${days} day(s)`
       prependActivity(state, 'leave', employeeName, `requested ${durationNote} ${type}`)
+    },
+    submitReimbursement(state, action) {
+      const {
+        employeeId,
+        employeeName,
+        requestFor,
+        amount,
+        expenseType,
+        expenseDate,
+        supportingDocuments = [],
+        comments = '',
+      } = action.payload
+
+      if (!employeeId || !employeeName || !amount || !expenseType || !expenseDate) return
+
+      if (!state.reimbursementRequests) state.reimbursementRequests = []
+
+      const id = state.nextId
+      state.nextId += 1
+
+      const request = {
+        id,
+        employeeId,
+        employeeName,
+        requestFor: requestFor || employeeName,
+        amount: Number(amount),
+        expenseType,
+        expenseDate,
+        supportingDocuments,
+        comments,
+        status: 'pending',
+        submittedAt: todayDate(),
+      }
+
+      state.reimbursementRequests.unshift(request)
+      prependActivity(state, 'announcement', employeeName, `submitted reimbursement for ${expenseType}`)
+    },
+    updateReimbursementStatus(state, action) {
+      const { id, status, reviewerComment = '', actorName, audit } = action.payload
+      const request = (state.reimbursementRequests || []).find((item) => item.id === id)
+      if (!request) return
+
+      state.reimbursementRequests = state.reimbursementRequests.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              status,
+              reviewerComment,
+              reviewedAt: todayDate(),
+              reviewedBy: actorName || audit?.actorName || 'HR Team',
+            }
+          : item,
+      )
+
+      prependActivity(state, 'announcement', actorName || 'HR Team', `${status} reimbursement for ${request.employeeName}`)
+      if (audit) {
+        appendAuditLogEntry(state, {
+          ...audit,
+          action: `${status} reimbursement request`,
+          category: 'finance',
+          scope: 'hr',
+          targetType: 'reimbursement',
+          targetId: id,
+          targetLabel: request.employeeName,
+          details: `${request.expenseType} · ₹${Number(request.amount).toLocaleString('en-IN')}`,
+        })
+      }
+    },
+    saveLeaveConfiguration(state, action) {
+      const { leavePolicy, leaveBalance, holidays, audit } = action.payload
+
+      if (leavePolicy) {
+        state.leavePolicy = { ...(state.leavePolicy || {}), ...leavePolicy }
+      }
+
+      if (leaveBalance) {
+        state.employeeStats = {
+          ...(state.employeeStats || {}),
+          leaveBalance: {
+            ...(state.employeeStats?.leaveBalance || {}),
+            ...leaveBalance,
+          },
+        }
+      }
+
+      if (Array.isArray(holidays)) {
+        state.holidays = sortHolidaysByDate(holidays)
+      }
+
+      prependActivity(state, 'announcement', 'HR Team', 'updated leave policy and holiday calendar')
+      if (audit) {
+        appendAuditLogEntry(state, {
+          ...audit,
+          action: 'Updated leave policy',
+          category: 'settings',
+          scope: 'hr',
+          targetType: 'leavePolicy',
+          targetId: 'leave-policy',
+          targetLabel: leavePolicy?.planName || state.leavePolicy?.planName || 'Leave policy',
+          details: `Balances updated${Array.isArray(holidays) ? ' · holidays synced' : ''}`,
+        })
+      }
+    },
+    upsertHoliday(state, action) {
+      const { holiday, audit } = action.payload
+      if (!holiday?.name || !holiday?.date || !holiday?.type) return
+
+      if (!state.holidays) state.holidays = []
+
+      if (holiday.id && state.holidays.some((h) => h.id === holiday.id)) {
+        state.holidays = sortHolidaysByDate(
+          state.holidays.map((h) => (h.id === holiday.id ? { ...h, ...holiday } : h)),
+        )
+      } else {
+        const id = holiday.id || state.nextId
+        if (!holiday.id) state.nextId += 1
+        state.holidays = sortHolidaysByDate([...state.holidays, { ...holiday, id }])
+      }
+
+      prependActivity(state, 'announcement', 'HR Team', `saved holiday: ${holiday.name}`)
+      if (audit) {
+        appendAuditLogEntry(state, {
+          ...audit,
+          action: holiday.id ? 'Updated holiday' : 'Created holiday',
+          category: 'settings',
+          scope: 'hr',
+          targetType: 'holiday',
+          targetId: holiday.id,
+          targetLabel: holiday.name,
+          details: `${holiday.date} · ${holiday.type}`,
+        })
+      }
+    },
+    deleteHoliday(state, action) {
+      const { id, audit } =
+        typeof action.payload === 'object' ? action.payload : { id: action.payload, audit: null }
+      const holiday = (state.holidays || []).find((h) => h.id === id)
+      if (!holiday) return
+
+      state.holidays = (state.holidays || []).filter((h) => h.id !== id)
+      state.optionalHolidayClaims = (state.optionalHolidayClaims || []).filter((c) => c.holidayId !== id)
+      prependActivity(state, 'announcement', 'HR Team', `removed holiday: ${holiday.name}`)
+      if (audit) {
+        appendAuditLogEntry(state, {
+          ...audit,
+          action: 'Deleted holiday',
+          category: 'settings',
+          scope: 'hr',
+          targetType: 'holiday',
+          targetId: id,
+          targetLabel: holiday.name,
+          details: `${holiday.date} · ${holiday.type}`,
+        })
+      }
     },
     addEmployee(state, action) {
       const { audit, ...form } = action.payload
@@ -928,7 +1128,13 @@ export const {
   addActivity,
   appendAuditLog,
   updateLeaveStatus,
+  updateLeaveRequest,
   submitLeave,
+  submitReimbursement,
+  updateReimbursementStatus,
+  saveLeaveConfiguration,
+  upsertHoliday,
+  deleteHoliday,
   addEmployee,
   bulkImportEmployees,
   patchEmployee,

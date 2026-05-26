@@ -5,7 +5,14 @@ import FloatingAiAssistant from '../components/ai/FloatingAiAssistant'
 import Toast from '../components/ui/Toast'
 import useMobileNav from '../hooks/useMobileNav'
 
-export default function HrLayout({ navItems, navSections, portalLabel, showHelpAndSettings = true }) {
+export default function HrLayout({
+  navItems,
+  navSections,
+  portalLabel,
+  profilePath,
+  showHelpAndSettings = true,
+  showSettings = true,
+}) {
   const nav = useMobileNav()
 
   return (
@@ -22,11 +29,16 @@ export default function HrLayout({ navItems, navSections, portalLabel, showHelpA
         navItems={navItems}
         navSections={navSections}
         portalLabel={portalLabel}
+        profilePath={profilePath}
         mobileOpen={nav.open}
         onClose={nav.close}
       />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <HrTopBar onMenuClick={nav.toggle} showHelpAndSettings={showHelpAndSettings} />
+        <HrTopBar
+          onMenuClick={nav.toggle}
+          showHelpAndSettings={showHelpAndSettings}
+          showSettings={showSettings}
+        />
         <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-sm sm:p-5 lg:p-6">
           <Outlet />
         </main>

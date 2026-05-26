@@ -199,6 +199,13 @@ export function getManagerSubtreeIds(focalEmployeeId, employees) {
   return new Set([focalEmployeeId, ...getDescendantIds(focalEmployeeId, childrenMap)])
 }
 
+export function getManagerViewIds(focalEmployeeId, employees) {
+  const childrenMap = buildChildrenMap(employees)
+  const ancestors = getAncestorIds(focalEmployeeId, employees)
+  const descendants = getDescendantIds(focalEmployeeId, childrenMap)
+  return new Set([focalEmployeeId, ...ancestors, ...descendants])
+}
+
 export function getEmployeeViewIds(focalEmployeeId, employees) {
   const ancestors = getAncestorIds(focalEmployeeId, employees)
   const direct = getDirectReports(employees, focalEmployeeId).map((e) => e.id)
@@ -209,7 +216,7 @@ export function getEmployeesForViewMode(employees, viewMode, focalEmployeeId) {
   const active = employees.filter((e) => e.status !== 'inactive')
   if (viewMode === 'organization' || !focalEmployeeId) return active
   if (viewMode === 'manager') {
-    const ids = getManagerSubtreeIds(focalEmployeeId, active)
+    const ids = getManagerViewIds(focalEmployeeId, active)
     return active.filter((e) => ids.has(e.id))
   }
   if (viewMode === 'employee') {
@@ -256,7 +263,7 @@ export const VIEW_MODE_LABELS = {
 
 export const VIEW_MODE_DESCRIPTIONS = {
   organization: 'Full company reporting hierarchy — assign and edit reporting lines',
-  manager: 'Your team subtree — direct and indirect reports under you',
+  manager: 'Your reporting branch — higher authorities above you and everyone reporting below you',
   employee: 'Your reporting chain — manager, peers context, and direct reports',
 }
 

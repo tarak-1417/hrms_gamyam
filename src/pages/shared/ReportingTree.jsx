@@ -393,7 +393,7 @@ export default function ReportingTree() {
             {' '}
             — showing{' '}
             {viewMode === 'manager'
-              ? 'your team subtree (you and all reports below)'
+              ? 'your higher authorities above and your full team below'
               : 'your reporting chain (managers above, direct reports below)'}
           </span>
         </div>

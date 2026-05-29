@@ -1,7 +1,7 @@
 import { User, Wallet, Sparkles } from 'lucide-react'
 import Modal from '../ui/Modal'
 import DatePicker from '../ui/DatePicker'
-import { estimatePayrollByProfile } from '../../store/hrmsHelpers'
+import { calculatePayrollBreakdown, estimatePayrollByProfile } from '../../store/hrmsHelpers'
 
 const inputClass =
   'mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-foreground shadow-sm transition placeholder:text-neutral-400 hover:border-primary/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
@@ -21,6 +21,57 @@ function formatInr(n) {
   return `₹${Number(n).toLocaleString('en-IN')}`
 }
 
+function buildPayrollPreviewGroups(preview) {
+  if (!preview) return { earnings: [], deductions: [], employerContributions: [] }
+  return {
+    earnings: [
+      ['Basic', preview.basic],
+      ['HRA', preview.hra],
+      ['LTA', preview.lta],
+      ['Bonus', preview.bonus],
+      ['Special allowance', preview.specialAllowance],
+      ['Gross salary', preview.grossSalary],
+    ],
+    deductions: [
+      ['EPF (employee)', preview.epfEmployee],
+      ['ESI (employee)', preview.esiEmployee],
+      ['Professional tax', preview.professionalTax],
+      ['Health insurance', preview.healthInsurance],
+      ['TDS', preview.tds],
+      ['Other deductions', preview.otherDeductions],
+      ['Total deductions', preview.deductions],
+    ],
+    employerContributions: [
+      ['EPF (employer)', preview.employerEpf],
+      ['ESI (employer)', preview.employerEsi],
+      ['Gratuity', preview.gratuity],
+      ['Company cost', preview.companyCostMonthly],
+    ],
+  }
+}
+
+function getCalculatedFieldValue(form, key, preview) {
+  if (form[key] !== '' && form[key] != null) return form[key]
+  if (!preview) return form[key]
+
+  const previewValues = {
+    payrollMonth: preview.month,
+    annualCtc: preview.yearlyCtc,
+    basic: preview.basic,
+    hra: preview.hra,
+    lta: preview.lta,
+    bonus: preview.bonus,
+    specialAllowance: preview.specialAllowance,
+    professionalTax: preview.professionalTax,
+    healthInsurance: preview.healthInsurance,
+    tds: preview.tds,
+    otherDeductions: preview.otherDeductions,
+  }
+
+  const value = previewValues[key]
+  return value == null ? form[key] : String(value)
+}
+
 export default function EmployeeFormModal({
   open,
   onClose,
@@ -35,11 +86,38 @@ export default function EmployeeFormModal({
   onSubmit,
   autoPayrollPreview,
 }) {
+  const hasManualPayroll =
+    form.annualCtc ||
+    form.basic ||
+    form.hra ||
+    form.lta ||
+    form.bonus ||
+    form.specialAllowance ||
+    form.professionalTax ||
+    form.healthInsurance ||
+    form.tds ||
+    form.otherDeductions
+
   const preview =
     autoPayrollPreview ??
-    (form.department && form.role && !form.basic && !form.net
-      ? estimatePayrollByProfile({ department: form.department, role: form.role, id: editingId })
+    (form.department && form.role
+      ? hasManualPayroll
+        ? calculatePayrollBreakdown({
+            month: form.payrollMonth,
+            annualCtc: form.annualCtc,
+            basic: form.basic,
+            hra: form.hra,
+            lta: form.lta,
+            bonus: form.bonus,
+            specialAllowance: form.specialAllowance,
+            professionalTax: form.professionalTax,
+            healthInsurance: form.healthInsurance,
+            tds: form.tds,
+            otherDeductions: form.otherDeductions,
+          })
+        : estimatePayrollByProfile({ department: form.department, role: form.role, id: editingId })
       : null)
+  const previewGroups = buildPayrollPreviewGroups(preview)
 
   return (
     <Modal
@@ -48,8 +126,8 @@ export default function EmployeeFormModal({
       title={isEditing ? 'Edit employee' : 'Add new employee'}
       subtitle={
         isEditing
-          ? 'Update profile and monthly payroll for this team member.'
-          : 'Create a profile — payroll is calculated automatically if you leave salary blank.'
+          ? 'Update profile and salary breakup for this team member.'
+          : 'Create a profile — payroll can be calculated automatically from annual CTC or role defaults.'
       }
       xl2
     >
@@ -211,8 +289,11 @@ export default function EmployeeFormModal({
                 <Wallet className="h-4 w-4" />
               </span>
               <div>
-                <h4 className="text-sm font-semibold text-foreground">Monthly payroll</h4>
-                <p className="text-xs text-muted">Optional — leave blank for smart defaults</p>
+                <h4 className="text-sm font-semibold text-foreground">Salary breakup</h4>
+                <p className="text-xs text-muted">
+                  Enter annual CTC or override the monthly breakup fields below. The system will
+                  auto-calculate the full salary breakup.
+                </p>
               </div>
             </div>
             {preview && (
@@ -226,8 +307,8 @@ export default function EmployeeFormModal({
           {preview && (
             <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[
-                { label: 'Basic', value: preview.basic },
-                { label: 'Allowances', value: preview.allowances },
+                { label: 'Annual CTC', value: preview.yearlyCtc },
+                { label: 'Gross Salary', value: preview.grossSalary },
                 { label: 'Deductions', value: preview.deductions },
                 { label: 'Net pay', value: preview.net, highlight: true },
               ].map((item) => (
@@ -254,25 +335,46 @@ export default function EmployeeFormModal({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {[
+              { key: 'payrollMonth', label: 'Payroll month', placeholder: 'April 2026', type: 'text' },
+              { key: 'annualCtc', label: 'Annual CTC' },
               { key: 'basic', label: 'Basic' },
-              { key: 'allowances', label: 'Allowances' },
-              { key: 'deductions', label: 'Deductions' },
-              { key: 'net', label: 'Net' },
-            ].map(({ key, label }) => (
+              { key: 'hra', label: 'HRA' },
+              { key: 'lta', label: 'LTA' },
+              { key: 'bonus', label: 'Bonus' },
+              { key: 'specialAllowance', label: 'Special allowance' },
+              { key: 'professionalTax', label: 'Professional tax' },
+              { key: 'healthInsurance', label: 'Health insurance' },
+              { key: 'tds', label: 'TDS' },
+              { key: 'otherDeductions', label: 'Other deductions' },
+            ].map(({ key, label, placeholder = 'Auto', type = 'number' }) => (
               <Field key={key} label={label}>
                 <input
-                  type="number"
-                  min="0"
-                  value={form[key]}
+                  type={type}
+                  min={type === 'number' ? '0' : undefined}
+                  value={getCalculatedFieldValue(form, key, hasManualPayroll ? preview : null)}
                   onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  placeholder="Auto"
+                  placeholder={placeholder}
                   className={inputClass}
                 />
               </Field>
             ))}
           </div>
+
+          <p className="mt-3 text-xs text-muted">
+            Formula defaults: basic 50% of CTC, HRA 40% of basic, LTA only when basic is above
+            ₹15,000, bonus fixed at ₹2,750, EPF capped at ₹1,800, professional tax at slab rates,
+            and gratuity at 4.81%.
+          </p>
+
+          {preview && (
+            <div className="mt-4 grid gap-4 xl:grid-cols-3">
+              <PreviewGroup title="Earnings" items={previewGroups.earnings} positive />
+              <PreviewGroup title="Deductions" items={previewGroups.deductions} negative />
+              <PreviewGroup title="Employer contributions" items={previewGroups.employerContributions} />
+            </div>
+          )}
         </section>
 
         <div className="flex flex-col-reverse gap-3 border-t border-neutral-100 pt-5 sm:flex-row sm:justify-end">
@@ -292,5 +394,27 @@ export default function EmployeeFormModal({
         </div>
       </form>
     </Modal>
+  )
+}
+
+function PreviewGroup({ title, items, positive, negative }) {
+  return (
+    <div className="rounded-2xl border border-primary/10 bg-white/85 p-4 shadow-sm">
+      <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">{title}</p>
+      <div className="space-y-2">
+        {items.map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-muted">{label}</span>
+            <span
+              className={`font-semibold ${
+                negative ? 'text-red-600' : positive ? 'text-primary-dark' : 'text-foreground'
+              }`}
+            >
+              {formatInr(value)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

@@ -24,10 +24,7 @@ const pageTitles = {
 export default function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-surface">
-      <Sidebar
-        brand={{ title: 'Gamyam HRMS', subtitle: 'Admin Panel' }}
-        navItems={navItems}
-      />
+      <Sidebar variant="light" menuLabel="Main menu" navItems={navItems} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <HeaderWrapper titles={pageTitles} />
         <main className="flex-1 overflow-y-auto p-8">
@@ -41,5 +38,12 @@ export default function AdminLayout() {
 function HeaderWrapper({ titles }) {
   const { pathname } = useLocation()
   const meta = titles[pathname] ?? titles['/admin']
-  return <Header title={meta.title} description={meta.description} />
+  return (
+    <Header
+      variant="classic"
+      title={meta.title}
+      description={meta.description}
+      profilePath="/admin"
+    />
+  )
 }

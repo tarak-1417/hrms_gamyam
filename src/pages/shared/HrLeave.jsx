@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Pencil, Plus, Save, Trash2 } from 'lucide-react'
+import { Eye, Pencil, Plus, Save, Trash2 } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
@@ -7,7 +7,14 @@ import DatePicker from '../../components/ui/DatePicker'
 import { useHrms } from '../../hooks/useHrms'
 import { useAuth } from '../../hooks/useAuth'
 import { usePlatform } from '../../hooks/usePlatform'
-import { HALF_DAY_PERIODS, formatLeaveDateRange, formatLeaveDuration } from '../../utils/timeUtils'
+import {
+  DEFAULT_EARNED_LEAVE_POLICY,
+  getEarnedLeavePolicy,
+  getEarnedLeavePolicyFacts,
+} from '../../utils/earnedLeavePolicy'
+import { getManagerTeamEmployees } from '../../utils/organizationHelpers'
+import { buildEmployeeLeaveSummary, getLeaveRequestValidation } from '../../utils/leaveBalance'
+import { HALF_DAY_PERIODS, formatDisplayDate, formatLeaveDateRange, formatLeaveDuration } from '../../utils/timeUtils'
 import {
   CORE_HOLIDAY_TYPES,
   countHolidaysByType,
@@ -52,6 +59,7 @@ const PLAN_PRESETS = {
       optionalHolidayLimit: 1,
       optionalHolidayNote: 'Starter plan employees can avail 1 optional holiday per year.',
       restrictedHolidayNote: 'National holidays are company-wide offs. Festival holidays follow the starter plan calendar.',
+      earnedLeavePolicy: DEFAULT_EARNED_LEAVE_POLICY,
     },
     holidayIds: [1, 3, 5, 6, 8, 11, 13, 16, 17],
   },
@@ -62,6 +70,7 @@ const PLAN_PRESETS = {
       optionalHolidayLimit: 2,
       optionalHolidayNote: 'Professional plan employees can avail up to 2 optional holidays per year.',
       restrictedHolidayNote: 'National and major festival holidays are company-wide offs.',
+      earnedLeavePolicy: DEFAULT_EARNED_LEAVE_POLICY,
     },
     holidayIds: [1, 2, 3, 5, 6, 8, 9, 11, 12, 13, 16, 17, 18],
   },
@@ -72,6 +81,7 @@ const PLAN_PRESETS = {
       optionalHolidayLimit: 4,
       optionalHolidayNote: 'Enterprise plan employees can avail up to 4 optional holidays per year.',
       restrictedHolidayNote: 'National and festival holidays are company-wide offs. Optional holidays are available by policy.',
+      earnedLeavePolicy: DEFAULT_EARNED_LEAVE_POLICY,
     },
     holidayIds: HOLIDAY_LIBRARY.map((holiday) => holiday.id),
   },
@@ -112,12 +122,24 @@ function formatHolidayDateTile(iso) {
   }
 }
 
+function formatBalancePreview(days, balanceKey) {
+  const value = Number(days ?? 0)
+  if (balanceKey === 'optional') {
+    return `${value} optional holiday(s)`
+  }
+  return `${value} ${value === 1 ? 'day' : 'days'}`
+}
+
 export default function HrLeave() {
   const {
+    employees = [],
+    departments = [],
     leaveRequests,
+    leaveBalancesByEmployee = {},
     holidays = [],
     leavePolicy = {},
     employeeStats = {},
+    optionalHolidayClaims = [],
     updateLeaveStatus,
     updateLeaveRequest,
     saveLeaveConfiguration,
@@ -128,14 +150,34 @@ export default function HrLeave() {
   const { organizations } = usePlatform()
 
   const canManage = ['admin', 'superadmin'].includes(user?.role)
-  const pendingCount = leaveRequests.filter((leave) => leave.status === 'pending').length
+  const isManager = user?.role === 'manager'
+  const canApprove = canManage || isManager
   const companyPlan =
     organizations?.find((org) => org.id === user?.organizationId)?.plan ||
     leavePolicy.planName ||
     'Professional'
 
+  const managerTeam = useMemo(
+    () =>
+      isManager
+        ? getManagerTeamEmployees({
+            user,
+            employees,
+            departments,
+          })
+        : [],
+    [isManager, user, employees, departments],
+  )
+  const managerTeamIds = useMemo(() => new Set(managerTeam.map((employee) => employee.id)), [managerTeam])
+  const visibleLeaveRequests = useMemo(() => {
+    if (!isManager) return leaveRequests
+    return leaveRequests.filter((leave) => managerTeamIds.has(leave.employeeId))
+  }, [isManager, leaveRequests, managerTeamIds])
+  const pendingCount = visibleLeaveRequests.filter((leave) => leave.status === 'pending').length
+
   const [activeTab, setActiveTab] = useState('requests')
   const [editLeaveId, setEditLeaveId] = useState(null)
+  const [reviewLeaveId, setReviewLeaveId] = useState(null)
   const [leaveForm, setLeaveForm] = useState({
     type: 'Casual Leave',
     durationType: 'full',
@@ -153,6 +195,21 @@ export default function HrLeave() {
     optionalHolidayLimit: 0,
     optionalHolidayNote: '',
     restrictedHolidayNote: '',
+    earnedIsPaid: true,
+    earnedIsLimited: true,
+    earnedRetroactiveAllowed: true,
+    earnedBalanceExpiry: '',
+    earnedAccrualDaysPerMonth: 0.5,
+    earnedProratedInitialBalance: false,
+    earnedProratedNextAccrual: true,
+    earnedCarryForwardText: DEFAULT_EARNED_LEAVE_POLICY.carryForwardText,
+    earnedCarryForwardCapDays: 30,
+    earnedMaxBalanceCapEnabled: true,
+    earnedMaxBalanceCapDays: 30,
+    earnedNegativeBalanceAllowed: false,
+    earnedSandwichEnabled: false,
+    earnedMaxUsagePerPeriodEnabled: false,
+    earnedMaxUsagePerPeriodDays: 0,
   })
   const [holidayModalOpen, setHolidayModalOpen] = useState(false)
   const [holidayForm, setHolidayForm] = useState(emptyHoliday())
@@ -162,8 +219,77 @@ export default function HrLeave() {
   const holidayTypes = useMemo(() => listHolidayTypes(sortedHolidays), [sortedHolidays])
   const holidaySummary = useMemo(() => formatHolidayTypeSummary(sortedHolidays), [sortedHolidays])
   const isCustomHolidayType = !isCoreHolidayType(holidayForm.type)
+  const requestValidationById = useMemo(
+    () =>
+      Object.fromEntries(
+        visibleLeaveRequests.map((leave) => {
+          const employee = employees.find((item) => item.id === leave.employeeId) ?? null
+          const summary = buildEmployeeLeaveSummary({
+            employee,
+            employeeId: leave.employeeId,
+            leaveRequests,
+            leaveBalancesByEmployee,
+            fallbackBalance: employeeStats?.leaveBalance,
+            optionalHolidayClaims,
+            leavePolicy,
+            excludeLeaveId: leave.id,
+            asOfDate: leave.from,
+          })
+          return [leave.id, getLeaveRequestValidation(leave, summary, leavePolicy)]
+        }),
+      ),
+    [
+      visibleLeaveRequests,
+      leaveRequests,
+      leaveBalancesByEmployee,
+      employeeStats?.leaveBalance,
+      optionalHolidayClaims,
+      leavePolicy,
+    ],
+  )
+  const reviewedLeave = useMemo(
+    () => visibleLeaveRequests.find((leave) => leave.id === reviewLeaveId) ?? null,
+    [visibleLeaveRequests, reviewLeaveId],
+  )
+  const reviewedEmployeeHistory = useMemo(() => {
+    if (!reviewedLeave?.employeeId) return []
+    return [...leaveRequests]
+      .filter((leave) => leave.employeeId === reviewedLeave.employeeId)
+      .sort((a, b) => {
+        if (a.id === reviewedLeave.id) return -1
+        if (b.id === reviewedLeave.id) return 1
+        return b.from.localeCompare(a.from) || b.id - a.id
+      })
+  }, [leaveRequests, reviewedLeave])
+  const reviewedEmployeeSummary = useMemo(() => {
+    if (!reviewedLeave?.employeeId) return null
+    const employee = employees.find((item) => item.id === reviewedLeave.employeeId) ?? null
+    return buildEmployeeLeaveSummary({
+      employee,
+      employeeId: reviewedLeave.employeeId,
+      leaveRequests,
+      leaveBalancesByEmployee,
+      fallbackBalance: employeeStats?.leaveBalance,
+      optionalHolidayClaims,
+      leavePolicy,
+      excludeLeaveId: reviewedLeave.id,
+      asOfDate: reviewedLeave.from,
+    })
+  }, [
+    employees,
+    reviewedLeave,
+    leaveRequests,
+    leaveBalancesByEmployee,
+    employeeStats?.leaveBalance,
+    optionalHolidayClaims,
+    leavePolicy,
+  ])
+  const reviewedValidation = reviewedLeave ? requestValidationById[reviewedLeave.id] : null
+  const earnedLeavePolicy = useMemo(() => getEarnedLeavePolicy(leavePolicy), [leavePolicy])
+  const earnedLeavePolicyFacts = useMemo(() => getEarnedLeavePolicyFacts(leavePolicy), [leavePolicy])
 
   useEffect(() => {
+    const earnedPolicy = getEarnedLeavePolicy(leavePolicy)
     setPolicyForm({
       planName: leavePolicy.planName || companyPlan,
       casual: employeeStats?.leaveBalance?.casual ?? 0,
@@ -172,6 +298,21 @@ export default function HrLeave() {
       optionalHolidayLimit: leavePolicy.optionalHolidayLimit ?? 0,
       optionalHolidayNote: leavePolicy.optionalHolidayNote || '',
       restrictedHolidayNote: leavePolicy.restrictedHolidayNote || '',
+      earnedIsPaid: earnedPolicy.isPaid,
+      earnedIsLimited: earnedPolicy.isLimited,
+      earnedRetroactiveAllowed: earnedPolicy.retroactiveAllowed,
+      earnedBalanceExpiry: earnedPolicy.balanceExpiry || '',
+      earnedAccrualDaysPerMonth: earnedPolicy.accrualDaysPerMonth,
+      earnedProratedInitialBalance: earnedPolicy.proratedInitialBalance,
+      earnedProratedNextAccrual: earnedPolicy.proratedNextAccrual,
+      earnedCarryForwardText: earnedPolicy.carryForwardText || '',
+      earnedCarryForwardCapDays: earnedPolicy.carryForwardCapDays,
+      earnedMaxBalanceCapEnabled: earnedPolicy.maxBalanceCapEnabled,
+      earnedMaxBalanceCapDays: earnedPolicy.maxBalanceCapDays,
+      earnedNegativeBalanceAllowed: earnedPolicy.negativeBalanceAllowed,
+      earnedSandwichEnabled: earnedPolicy.sandwichEnabled,
+      earnedMaxUsagePerPeriodEnabled: earnedPolicy.maxUsagePerPeriodEnabled,
+      earnedMaxUsagePerPeriodDays: earnedPolicy.maxUsagePerPeriodDays,
     })
   }, [leavePolicy, employeeStats, companyPlan])
 
@@ -186,6 +327,10 @@ export default function HrLeave() {
       reason: leave.reason || '',
       status: leave.status || 'pending',
     })
+  }
+
+  const openReviewLeave = (leave) => {
+    setReviewLeaveId(leave.id)
   }
 
   const handleLeaveSave = (e) => {
@@ -210,6 +355,23 @@ export default function HrLeave() {
         optionalHolidayLimit: Number(policyForm.optionalHolidayLimit),
         optionalHolidayNote: policyForm.optionalHolidayNote,
         restrictedHolidayNote: policyForm.restrictedHolidayNote,
+        earnedLeavePolicy: {
+          isPaid: policyForm.earnedIsPaid,
+          isLimited: policyForm.earnedIsLimited,
+          retroactiveAllowed: policyForm.earnedRetroactiveAllowed,
+          balanceExpiry: policyForm.earnedBalanceExpiry.trim(),
+          accrualDaysPerMonth: Number(policyForm.earnedAccrualDaysPerMonth),
+          proratedInitialBalance: policyForm.earnedProratedInitialBalance,
+          proratedNextAccrual: policyForm.earnedProratedNextAccrual,
+          carryForwardText: policyForm.earnedCarryForwardText,
+          carryForwardCapDays: Number(policyForm.earnedCarryForwardCapDays),
+          maxBalanceCapEnabled: policyForm.earnedMaxBalanceCapEnabled,
+          maxBalanceCapDays: Number(policyForm.earnedMaxBalanceCapDays),
+          negativeBalanceAllowed: policyForm.earnedNegativeBalanceAllowed,
+          sandwichEnabled: policyForm.earnedSandwichEnabled,
+          maxUsagePerPeriodEnabled: policyForm.earnedMaxUsagePerPeriodEnabled,
+          maxUsagePerPeriodDays: Number(policyForm.earnedMaxUsagePerPeriodDays),
+        },
       },
       leaveBalance: {
         casual: Number(policyForm.casual),
@@ -222,6 +384,7 @@ export default function HrLeave() {
   const applyPlanDefaults = (planName) => {
     const preset = PLAN_PRESETS[planName]
     if (!preset) return
+    const presetEarnedPolicy = getEarnedLeavePolicy(preset.leavePolicy)
     setPolicyForm({
       planName,
       casual: preset.leaveBalance.casual,
@@ -230,6 +393,21 @@ export default function HrLeave() {
       optionalHolidayLimit: preset.leavePolicy.optionalHolidayLimit,
       optionalHolidayNote: preset.leavePolicy.optionalHolidayNote,
       restrictedHolidayNote: preset.leavePolicy.restrictedHolidayNote,
+      earnedIsPaid: presetEarnedPolicy.isPaid,
+      earnedIsLimited: presetEarnedPolicy.isLimited,
+      earnedRetroactiveAllowed: presetEarnedPolicy.retroactiveAllowed,
+      earnedBalanceExpiry: presetEarnedPolicy.balanceExpiry,
+      earnedAccrualDaysPerMonth: presetEarnedPolicy.accrualDaysPerMonth,
+      earnedProratedInitialBalance: presetEarnedPolicy.proratedInitialBalance,
+      earnedProratedNextAccrual: presetEarnedPolicy.proratedNextAccrual,
+      earnedCarryForwardText: presetEarnedPolicy.carryForwardText,
+      earnedCarryForwardCapDays: presetEarnedPolicy.carryForwardCapDays,
+      earnedMaxBalanceCapEnabled: presetEarnedPolicy.maxBalanceCapEnabled,
+      earnedMaxBalanceCapDays: presetEarnedPolicy.maxBalanceCapDays,
+      earnedNegativeBalanceAllowed: presetEarnedPolicy.negativeBalanceAllowed,
+      earnedSandwichEnabled: presetEarnedPolicy.sandwichEnabled,
+      earnedMaxUsagePerPeriodEnabled: presetEarnedPolicy.maxUsagePerPeriodEnabled,
+      earnedMaxUsagePerPeriodDays: presetEarnedPolicy.maxUsagePerPeriodDays,
     })
     saveLeaveConfiguration({
       leavePolicy: preset.leavePolicy,
@@ -273,7 +451,7 @@ export default function HrLeave() {
         <p className="mt-1 text-muted">
           {canManage
             ? 'Review requests, correct leave dates, and manage company leave policy'
-            : 'Review and approve team leave requests'}
+            : 'Review team leave requests and verify available balance before approval'}
         </p>
       </div>
 
@@ -296,60 +474,132 @@ export default function HrLeave() {
         </div>
       )}
 
-      {(!canManage || activeTab === 'requests') && (
+      {(canApprove && (!canManage || activeTab === 'requests')) && (
         <Card
-          title="All Leave Requests"
-          subtitle={`${leaveRequests.length} requests · ${pendingCount} pending review`}
+          title={isManager ? 'Team Leave Requests' : 'All Leave Requests'}
+          subtitle={`${visibleLeaveRequests.length} requests · ${pendingCount} pending review${
+            isManager ? ` · ${managerTeam.length} team members` : ''
+          }`}
         >
           <div className="space-y-4">
-            {leaveRequests.length === 0 ? (
-              <p className="text-sm text-muted">No leave requests</p>
+            {visibleLeaveRequests.length === 0 ? (
+              <p className="text-sm text-muted">
+                {isManager ? 'No leave requests from your team yet' : 'No leave requests'}
+              </p>
             ) : (
-              leaveRequests.map((leave) => (
-                <div
-                  key={leave.id}
-                  className="grid gap-4 rounded-xl border border-neutral-200 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground">{leave.employeeName}</p>
-                    <p className="mt-1 text-sm text-muted">
-                      {leave.type} · {formatLeaveDateRange(leave)} · {formatLeaveDuration(leave)}
-                    </p>
-                    {leave.reason && <p className="mt-2 text-sm text-muted">{leave.reason}</p>}
+              visibleLeaveRequests.map((leave) => {
+                const validation = requestValidationById[leave.id]
+                return (
+                  <div
+                    key={leave.id}
+                    className={`rounded-2xl border p-4 shadow-sm transition ${
+                      leave.status === 'pending'
+                        ? 'border-amber-200 bg-white'
+                        : leave.status === 'approved'
+                          ? 'border-primary/20 bg-primary-light/10'
+                          : 'border-neutral-200 bg-white'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => openReviewLeave(leave)}
+                      className="w-full min-w-0 rounded-xl text-left transition hover:bg-neutral-50/70"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-semibold text-foreground">{leave.employeeName}</p>
+                            <span
+                              className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                                leave.status === 'pending'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : leave.status === 'approved'
+                                    ? 'bg-primary-light text-primary-dark'
+                                    : 'bg-red-50 text-red-700'
+                              }`}
+                            >
+                              {leave.status === 'pending'
+                                ? 'Pending review'
+                                : leave.status === 'approved'
+                                  ? 'Approved'
+                                  : 'Rejected'}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm text-muted">
+                            {leave.type} · {formatLeaveDateRange(leave)} · {formatLeaveDuration(leave)}
+                          </p>
+                          {leave.reason && <p className="mt-2 text-sm text-muted">{leave.reason}</p>}
+                        </div>
+                        <span className="inline-flex items-center gap-1 self-start rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-muted ring-1 ring-neutral-200">
+                          <Eye className="h-3.5 w-3.5" />
+                          Review
+                        </span>
+                      </div>
+
+                      {validation?.balanceKey && (
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                          <Badge status={validation.isValid ? 'approved' : 'rejected'}>
+                            {validation.isValid ? 'Valid leave' : validation.reasons?.[0] || 'Policy issue'}
+                          </Badge>
+                          <span className="text-muted">
+                            Available now:{' '}
+                            <span className="font-semibold text-foreground">
+                              {formatBalancePreview(validation.availableBeforeApproval, validation.balanceKey)}
+                            </span>
+                          </span>
+                          <span className="text-muted">
+                            After approval:{' '}
+                            <span
+                              className={`font-semibold ${
+                                validation.balanceAfterApproval >= 0 ? 'text-foreground' : 'text-red-600'
+                              }`}
+                            >
+                              {formatBalancePreview(validation.balanceAfterApproval, validation.balanceKey)}
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                    </button>
+
+                    <div className="mt-4 flex flex-col gap-3 border-t border-neutral-200/80 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="text-xs text-muted">
+                        {leave.status === 'pending'
+                          ? 'This request is waiting for approval or rejection.'
+                          : `Request marked as ${leave.status}.`}
+                      </div>
+
+                      {leave.status === 'pending' && (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={!validation?.isValid}
+                            onClick={() => updateLeaveStatus(leave.id, 'approved', user?.name)}
+                            className={`rounded-lg px-3 py-1.5 text-xs font-semibold text-white ${
+                              validation?.isValid
+                                ? 'bg-primary hover:bg-primary-dark'
+                                : 'cursor-not-allowed bg-neutral-300'
+                            }`}
+                            title={
+                              validation?.isValid
+                                ? 'Approve leave request'
+                                : 'Cannot approve because no leave balance is left'
+                            }
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateLeaveStatus(leave.id, 'rejected', user?.name)}
+                            className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                    <Badge status={leave.status} />
-                    {canManage && (
-                      <button
-                        type="button"
-                        onClick={() => openEditLeave(leave)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                        Edit
-                      </button>
-                    )}
-                    {leave.status === 'pending' && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => updateLeaveStatus(leave.id, 'approved', user?.name)}
-                          className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-dark"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateLeaveStatus(leave.id, 'rejected', user?.name)}
-                          className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-50"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </Card>
@@ -447,6 +697,179 @@ export default function HrLeave() {
                   rows={4}
                   value={policyForm.restrictedHolidayNote}
                   onChange={(e) => setPolicyForm({ ...policyForm, restrictedHolidayNote: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Earned Leave Rules</h3>
+                <p className="text-xs text-muted">Detailed policy for accrued earned leave.</p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <PolicySelect
+                  label="Paid or unpaid"
+                  value={policyForm.earnedIsPaid ? 'paid' : 'unpaid'}
+                  onChange={(value) => setPolicyForm({ ...policyForm, earnedIsPaid: value === 'paid' })}
+                  options={[
+                    { value: 'paid', label: 'Paid' },
+                    { value: 'unpaid', label: 'Unpaid' },
+                  ]}
+                />
+                <PolicySelect
+                  label="Limited or unlimited"
+                  value={policyForm.earnedIsLimited ? 'limited' : 'unlimited'}
+                  onChange={(value) => setPolicyForm({ ...policyForm, earnedIsLimited: value === 'limited' })}
+                  options={[
+                    { value: 'limited', label: 'Limited Leaves' },
+                    { value: 'unlimited', label: 'Unlimited Leaves' },
+                  ]}
+                />
+                <PolicySelect
+                  label="Retroactive requests"
+                  value={policyForm.earnedRetroactiveAllowed ? 'yes' : 'no'}
+                  onChange={(value) =>
+                    setPolicyForm({ ...policyForm, earnedRetroactiveAllowed: value === 'yes' })
+                  }
+                  options={[
+                    { value: 'yes', label: 'Yes' },
+                    { value: 'no', label: 'No' },
+                  ]}
+                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Balance expiry</label>
+                  <input
+                    value={policyForm.earnedBalanceExpiry}
+                    onChange={(e) => setPolicyForm({ ...policyForm, earnedBalanceExpiry: e.target.value })}
+                    placeholder="Leave blank for no expiry"
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Accrual per month</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    value={policyForm.earnedAccrualDaysPerMonth}
+                    onChange={(e) =>
+                      setPolicyForm({ ...policyForm, earnedAccrualDaysPerMonth: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Carry forward cap</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={policyForm.earnedCarryForwardCapDays}
+                    onChange={(e) =>
+                      setPolicyForm({ ...policyForm, earnedCarryForwardCapDays: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                  />
+                </div>
+                <PolicySelect
+                  label="Prorated initial balance"
+                  value={policyForm.earnedProratedInitialBalance ? 'yes' : 'no'}
+                  onChange={(value) =>
+                    setPolicyForm({ ...policyForm, earnedProratedInitialBalance: value === 'yes' })
+                  }
+                  options={[
+                    { value: 'yes', label: 'Yes' },
+                    { value: 'no', label: 'No' },
+                  ]}
+                />
+                <PolicySelect
+                  label="Prorated next accrual"
+                  value={policyForm.earnedProratedNextAccrual ? 'yes' : 'no'}
+                  onChange={(value) =>
+                    setPolicyForm({ ...policyForm, earnedProratedNextAccrual: value === 'yes' })
+                  }
+                  options={[
+                    { value: 'yes', label: 'Yes' },
+                    { value: 'no', label: 'No' },
+                  ]}
+                />
+                <PolicySelect
+                  label="Negative balance allowed"
+                  value={policyForm.earnedNegativeBalanceAllowed ? 'yes' : 'no'}
+                  onChange={(value) =>
+                    setPolicyForm({ ...policyForm, earnedNegativeBalanceAllowed: value === 'yes' })
+                  }
+                  options={[
+                    { value: 'yes', label: 'Yes' },
+                    { value: 'no', label: 'No' },
+                  ]}
+                />
+                <PolicySelect
+                  label="Sandwich leave enabled"
+                  value={policyForm.earnedSandwichEnabled ? 'yes' : 'no'}
+                  onChange={(value) =>
+                    setPolicyForm({ ...policyForm, earnedSandwichEnabled: value === 'yes' })
+                  }
+                  options={[
+                    { value: 'yes', label: 'Yes' },
+                    { value: 'no', label: 'No' },
+                  ]}
+                />
+                <PolicySelect
+                  label="Maximum balance cap"
+                  value={policyForm.earnedMaxBalanceCapEnabled ? 'yes' : 'no'}
+                  onChange={(value) =>
+                    setPolicyForm({ ...policyForm, earnedMaxBalanceCapEnabled: value === 'yes' })
+                  }
+                  options={[
+                    { value: 'yes', label: 'Enabled' },
+                    { value: 'no', label: 'Disabled' },
+                  ]}
+                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Max balance cap days</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={policyForm.earnedMaxBalanceCapDays}
+                    onChange={(e) =>
+                      setPolicyForm({ ...policyForm, earnedMaxBalanceCapDays: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                  />
+                </div>
+                <PolicySelect
+                  label="Maximum usage per period"
+                  value={policyForm.earnedMaxUsagePerPeriodEnabled ? 'yes' : 'no'}
+                  onChange={(value) =>
+                    setPolicyForm({ ...policyForm, earnedMaxUsagePerPeriodEnabled: value === 'yes' })
+                  }
+                  options={[
+                    { value: 'yes', label: 'Enabled' },
+                    { value: 'no', label: 'Disabled' },
+                  ]}
+                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Max usage days</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={policyForm.earnedMaxUsagePerPeriodDays}
+                    onChange={(e) =>
+                      setPolicyForm({ ...policyForm, earnedMaxUsagePerPeriodDays: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground">Carry forward rule</label>
+                <textarea
+                  rows={3}
+                  value={policyForm.earnedCarryForwardText}
+                  onChange={(e) => setPolicyForm({ ...policyForm, earnedCarryForwardText: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
                 />
               </div>
@@ -558,6 +981,185 @@ export default function HrLeave() {
           </div>
         </Card>
       )}
+
+      <Modal
+        open={Boolean(reviewedLeave)}
+        onClose={() => setReviewLeaveId(null)}
+        title={reviewedLeave ? `${reviewedLeave.employeeName} leave review` : 'Leave review'}
+        subtitle={
+          reviewedLeave
+            ? `${reviewedLeave.type} · ${formatLeaveDateRange(reviewedLeave)} · ${formatLeaveDuration(reviewedLeave)}`
+            : ''
+        }
+        xl
+      >
+        {reviewedLeave && reviewedEmployeeSummary && reviewedValidation && (
+          <div className="space-y-5">
+            <div className="grid gap-3 md:grid-cols-4">
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Casual left</p>
+                <p className="mt-2 text-2xl font-bold text-foreground">{reviewedEmployeeSummary.remaining.casual}</p>
+              </div>
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Sick left</p>
+                <p className="mt-2 text-2xl font-bold text-foreground">{reviewedEmployeeSummary.remaining.sick}</p>
+              </div>
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Earned left</p>
+                <p className="mt-2 text-2xl font-bold text-foreground">{reviewedEmployeeSummary.remaining.earned}</p>
+              </div>
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Pending days</p>
+                <p className="mt-2 text-2xl font-bold text-foreground">
+                  {reviewedEmployeeSummary.pending.casual +
+                    reviewedEmployeeSummary.pending.sick +
+                    reviewedEmployeeSummary.pending.earned +
+                    reviewedEmployeeSummary.optionalPending}
+                </p>
+              </div>
+            </div>
+
+            {reviewedLeave.type === 'Earned Leave' && reviewedEmployeeSummary.earnedAccrual && (
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">Carry forward opening</p>
+                  <p className="mt-2 text-2xl font-bold text-foreground">
+                    {reviewedEmployeeSummary.earnedAccrual.carryForwardBalance}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">Accrued to date</p>
+                  <p className="mt-2 text-2xl font-bold text-foreground">
+                    {reviewedEmployeeSummary.earnedAccrual.accruedBalance}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">Effective earned balance</p>
+                  <p className="mt-2 text-2xl font-bold text-foreground">
+                    {reviewedEmployeeSummary.earnedAccrual.effectiveBalance}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge status={reviewedValidation.isValid ? 'approved' : 'rejected'}>
+                  {reviewedValidation.isValid ? 'Manager can approve' : 'Policy validation failed'}
+                </Badge>
+                <span className="text-sm text-muted">
+                  Available before approval:{' '}
+                  <span className="font-semibold text-foreground">
+                    {formatBalancePreview(
+                      reviewedValidation.availableBeforeApproval,
+                      reviewedValidation.balanceKey,
+                    )}
+                  </span>
+                </span>
+                <span className="text-sm text-muted">
+                  Balance after approval:{' '}
+                  <span
+                    className={`font-semibold ${
+                      reviewedValidation.balanceAfterApproval >= 0 ? 'text-foreground' : 'text-red-600'
+                    }`}
+                  >
+                    {formatBalancePreview(
+                      reviewedValidation.balanceAfterApproval,
+                      reviewedValidation.balanceKey,
+                    )}
+                  </span>
+                </span>
+              </div>
+              {reviewedLeave.reason && (
+                <p className="mt-3 text-sm text-muted">
+                  <span className="font-medium text-foreground">Reason:</span> {reviewedLeave.reason}
+                </p>
+              )}
+              {reviewedValidation.reasons?.length > 0 && (
+                <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-red-700">Why this should be rejected</p>
+                  <ul className="mt-2 space-y-1 text-sm text-red-700">
+                    {reviewedValidation.reasons.map((reason) => (
+                      <li key={reason}>• {reason}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {reviewedLeave.status === 'pending' && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={!reviewedValidation.isValid}
+                    onClick={() => {
+                      updateLeaveStatus(reviewedLeave.id, 'approved', user?.name)
+                      setReviewLeaveId(null)
+                    }}
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${
+                      reviewedValidation.isValid
+                        ? 'bg-primary hover:bg-primary-dark'
+                        : 'cursor-not-allowed bg-neutral-300'
+                    }`}
+                  >
+                    Approve request
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateLeaveStatus(reviewedLeave.id, 'rejected', user?.name)
+                      setReviewLeaveId(null)
+                    }}
+                    className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+                  >
+                    Reject request
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {reviewedLeave.type === 'Earned Leave' && (
+              <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                <div className="border-b border-neutral-100 px-4 py-3">
+                  <h3 className="text-sm font-semibold text-foreground">Earned leave policy</h3>
+                  <p className="text-xs text-muted">Detailed policy used to validate this request.</p>
+                </div>
+                <div className="grid gap-3 px-4 py-4 sm:grid-cols-2">
+                  {earnedLeavePolicyFacts.map((fact) => (
+                    <PolicyFact key={fact.label} label={fact.label} value={fact.value} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
+              <div className="border-b border-neutral-100 px-4 py-3">
+                <h3 className="text-sm font-semibold text-foreground">All leave history</h3>
+                <p className="text-xs text-muted">Manager can review every leave this employee has already used or requested.</p>
+              </div>
+              <div className="max-h-[24rem] overflow-y-auto">
+                {reviewedEmployeeHistory.length === 0 ? (
+                  <p className="p-4 text-sm text-muted">No leave history found.</p>
+                ) : (
+                  <div className="divide-y divide-neutral-100">
+                    {reviewedEmployeeHistory.map((leave) => (
+                      <div key={leave.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="font-medium text-foreground">{leave.type}</p>
+                          <p className="mt-1 text-sm text-muted">
+                            {formatLeaveDateRange(leave)} · {formatLeaveDuration(leave)}
+                          </p>
+                          {leave.reason && <p className="mt-1 text-xs text-muted">{leave.reason}</p>}
+                          <p className="mt-1 text-xs text-muted">Applied for {formatDisplayDate(leave.from)}</p>
+                        </div>
+                        <Badge status={leave.status} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <Modal
         open={Boolean(editLeaveId)}
@@ -819,6 +1421,34 @@ export default function HrLeave() {
           </div>
         </form>
       </Modal>
+    </div>
+  )
+}
+
+function PolicySelect({ label, value, onChange, options }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-foreground">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+function PolicyFact({ label, value }) {
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
+      <p className="mt-1 text-sm font-medium text-foreground">{value || '-'}</p>
     </div>
   )
 }

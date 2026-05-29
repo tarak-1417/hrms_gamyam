@@ -151,7 +151,6 @@ export function buildMergeData(employee, overrides = {}, orgContext = null) {
   if (!employee) return base
 
   const payroll = estimatePayroll(employee)
-  const annualCtc = payroll.net * 12
 
   return {
     ...base,
@@ -163,7 +162,7 @@ export function buildMergeData(employee, overrides = {}, orgContext = null) {
     join_date: employee.joinDate,
     phone: employee.phone || '—',
     address: employee.address || workLocation,
-    annual_ctc: formatInr(annualCtc),
+    annual_ctc: formatInr(payroll.yearlyCtc),
     monthly_net: formatInr(payroll.net),
     designation: employee.role,
   }

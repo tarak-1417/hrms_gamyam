@@ -10,6 +10,7 @@ import {
   updateLeaveRequest as updateLeaveRequestAction,
   submitLeave as submitLeaveAction,
   submitReimbursement as submitReimbursementAction,
+  deleteReimbursement as deleteReimbursementAction,
   updateReimbursementStatus as updateReimbursementStatusAction,
   saveLeaveConfiguration as saveLeaveConfigurationAction,
   upsertHoliday as upsertHolidayAction,
@@ -17,6 +18,7 @@ import {
   addEmployee as addEmployeeAction,
   bulkImportEmployees as bulkImportEmployeesAction,
   patchEmployee,
+  updateEmployeeProfileImage as updateEmployeeProfileImageAction,
   updateEmployeePayroll as updateEmployeePayrollAction,
   toggleEmployeeTask as toggleEmployeeTaskAction,
   recordPortalLogin as recordPortalLoginAction,
@@ -53,6 +55,8 @@ import {
 } from '../store/slices/platformSlice'
 import { setSearchQuery, setToast, clearToast } from '../store/slices/uiSlice'
 import { wouldCreateReportingCycle } from '../utils/reportingTreeUtils'
+import { buildEmployeeLeaveSummary } from '../utils/leaveBalance'
+import { getBranchById, getDirectReports } from '../utils/organizationHelpers'
 import {
   selectAdminStats,
   selectManagerKpis,
@@ -60,7 +64,7 @@ import {
   selectLeaveChartData,
   filterEmployeesList,
 } from '../store/selectors/hrmsSelectors'
-import { todayDate, estimatePayroll } from '../store/hrmsHelpers'
+import { todayDate, estimatePayroll, normalizePayrollRecord } from '../store/hrmsHelpers'
 
 export function useHrms() {
   const dispatch = useDispatch()
@@ -123,6 +127,14 @@ export function useHrms() {
       dispatch(submitReimbursementAction(payload))
       showToast('Reimbursement request submitted')
       return true
+    },
+    [dispatch, showToast],
+  )
+
+  const deleteReimbursement = useCallback(
+    (id, employeeId) => {
+      dispatch(deleteReimbursementAction({ id, employeeId }))
+      showToast('Claim removed')
     },
     [dispatch, showToast],
   )
@@ -243,6 +255,20 @@ export function useHrms() {
     [dispatch, showToast],
   )
 
+  const updateEmployeeProfileImage = useCallback(
+    (employeeId, profileImage) => {
+      if (!employeeId) return
+      dispatch(
+        updateEmployeeProfileImageAction({
+          employeeId,
+          profileImage: profileImage ?? null,
+        }),
+      )
+      showToast(profileImage ? 'Profile photo updated' : 'Profile photo removed')
+    },
+    [dispatch, showToast],
+  )
+
   const updateEmployee = useCallback(
     (employeeId, payload) => {
       const { payrollInput, ...updates } = payload
@@ -318,22 +344,49 @@ export function useHrms() {
       const employee = hrms.employees.find((e) => e.id === employeeId)
       if (!employee) return null
       const date = todayDate()
-      const payroll =
-        hrms.payrollRecords.find((p) => p.employeeId === employeeId) ||
-        estimatePayroll(employee)
+      const leaves = hrms.leaveRequests
+        .filter((l) => l.employeeId === employeeId)
+        .sort((a, b) => `${b.from || ''}${b.id}`.localeCompare(`${a.from || ''}${a.id}`))
+      const timeLogs = (hrms.timeLogs || [])
+        .filter((t) => t.employeeId === employeeId)
+        .sort((a, b) => b.date.localeCompare(a.date))
+      const attendanceHistory = (hrms.attendanceRecords || [])
+        .filter((a) => a.employeeId === employeeId)
+        .sort((a, b) => b.date.localeCompare(a.date))
+      const payroll = normalizePayrollRecord(
+        hrms.payrollRecords.find((p) => p.employeeId === employeeId),
+        employee,
+      ) || estimatePayroll(employee)
+      const branch = getBranchById(hrms.branches, employee.branchId)
+      const manager = employee.managerId
+        ? hrms.employees.find((e) => e.id === employee.managerId) ?? null
+        : null
+      const directReports = getDirectReports(hrms.employees, employee.id)
+      const leaveSummary = buildEmployeeLeaveSummary({
+        employee,
+        employeeId,
+        leaveRequests: hrms.leaveRequests,
+        leaveBalancesByEmployee: hrms.leaveBalancesByEmployee,
+        fallbackBalance: hrms.employeeStats?.leaveBalance,
+        optionalHolidayClaims: hrms.optionalHolidayClaims,
+        leavePolicy: hrms.leavePolicy,
+      })
       return {
         employee,
         payroll,
-        leaves: hrms.leaveRequests.filter((l) => l.employeeId === employeeId),
-        timeLogs: (hrms.timeLogs || [])
-          .filter((t) => t.employeeId === employeeId)
-          .sort((a, b) => b.date.localeCompare(a.date)),
+        branch,
+        manager,
+        directReports,
+        leaveSummary,
+        leaves,
+        timeLogs,
+        attendanceHistory,
         todayAttendance: hrms.attendanceRecords.find(
           (a) => a.employeeId === employeeId && a.date === date,
         ),
-        todayLog: (hrms.timeLogs || []).find(
-          (t) => t.employeeId === employeeId && t.date === date,
-        ),
+        todayLog: timeLogs.find((t) => t.date === date),
+        latestAttendance: attendanceHistory[0] ?? null,
+        latestTimeLog: timeLogs[0] ?? null,
       }
     },
     [hrms],
@@ -684,6 +737,7 @@ export function useHrms() {
     updateLeaveRequest,
     submitLeave,
     submitReimbursement,
+    deleteReimbursement,
     updateReimbursementStatus,
     saveLeaveConfiguration,
     upsertHoliday,
@@ -691,6 +745,7 @@ export function useHrms() {
     addEmployee,
     bulkImportEmployees,
     updateEmployeeProfile,
+    updateEmployeeProfileImage,
     updateEmployee,
     getEmployeeById,
     toggleEmployeeTask,

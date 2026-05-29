@@ -24,6 +24,7 @@ const AuditLogs = lazy(() => import('./pages/shared/AuditLogs'))
 const ReportingTree = lazy(() => import('./pages/shared/ReportingTree'))
 const Payslips = lazy(() => import('./pages/employee/Payslips'))
 const Reimbursements = lazy(() => import('./pages/shared/Reimbursements'))
+const EmployeeReimbursements = lazy(() => import('./pages/employee/Reimbursements'))
 
 const SuperAdminDashboard = lazy(() => import('./pages/superadmin/Dashboard'))
 const Companies = lazy(() => import('./pages/superadmin/Companies'))
@@ -153,7 +154,7 @@ export default function App() {
             <Route index element={<EmployeeDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="leave" element={<EmployeeLeave />} />
-            <Route path="reimbursements" element={<Reimbursements />} />
+            <Route path="reimbursements" element={<EmployeeReimbursements />} />
             <Route path="payslips" element={<Payslips />} />
             <Route path="reporting" element={<ReportingTree />} />
             <Route path="documents" element={<Documents />} />

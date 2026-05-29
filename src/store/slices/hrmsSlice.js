@@ -13,6 +13,7 @@ import {
 } from '../hrmsHelpers'
 import { calculateLeaveDays } from '../../utils/timeUtils'
 import { syncOfficeLocationsFromBranches } from '../../utils/organizationHelpers'
+import { normalizeLeaveBalance } from '../../utils/leaveBalance'
 import { pushTrashEntry, restoreTrashItemToHrms, deletedByFromAudit } from '../../utils/trashHelpers'
 
 function prependActivity(state, type, user, action) {
@@ -160,6 +161,7 @@ const hrmsSlice = createSlice({
         ...(isHalfDay ? { halfDayPeriod } : {}),
         status: 'pending',
         reason,
+        submittedAt: todayDate(),
       })
 
       const durationNote = isHalfDay
@@ -179,7 +181,9 @@ const hrmsSlice = createSlice({
         comments = '',
       } = action.payload
 
-      if (!employeeId || !employeeName || !amount || !expenseType || !expenseDate) return
+      if (!employeeId || !employeeName || !amount || !expenseType) return
+
+      const resolvedExpenseDate = expenseDate || todayDate()
 
       if (!state.reimbursementRequests) state.reimbursementRequests = []
 
@@ -193,7 +197,7 @@ const hrmsSlice = createSlice({
         requestFor: requestFor || employeeName,
         amount: Number(amount),
         expenseType,
-        expenseDate,
+        expenseDate: resolvedExpenseDate,
         supportingDocuments,
         comments,
         status: 'pending',
@@ -202,6 +206,19 @@ const hrmsSlice = createSlice({
 
       state.reimbursementRequests.unshift(request)
       prependActivity(state, 'announcement', employeeName, `submitted reimbursement for ${expenseType}`)
+    },
+    deleteReimbursement(state, action) {
+      const { id, employeeId } = action.payload
+      const request = (state.reimbursementRequests || []).find((item) => item.id === id)
+      if (!request || request.employeeId !== employeeId || request.status !== 'pending') return
+
+      state.reimbursementRequests = state.reimbursementRequests.filter((item) => item.id !== id)
+      prependActivity(
+        state,
+        'announcement',
+        request.employeeName,
+        `withdrew reimbursement for ${request.expenseType}`,
+      )
     },
     updateReimbursementStatus(state, action) {
       const { id, status, reviewerComment = '', actorName, audit } = action.payload
@@ -242,13 +259,15 @@ const hrmsSlice = createSlice({
       }
 
       if (leaveBalance) {
+        const normalizedBalance = normalizeLeaveBalance(leaveBalance)
         state.employeeStats = {
           ...(state.employeeStats || {}),
-          leaveBalance: {
-            ...(state.employeeStats?.leaveBalance || {}),
-            ...leaveBalance,
-          },
+          leaveBalance: normalizedBalance,
         }
+        if (!state.leaveBalancesByEmployee) state.leaveBalancesByEmployee = {}
+        ;(state.employees || []).forEach((employee) => {
+          state.leaveBalancesByEmployee[employee.id] = { ...normalizedBalance }
+        })
       }
 
       if (Array.isArray(holidays)) {
@@ -341,6 +360,8 @@ const hrmsSlice = createSlice({
         managerId: form.managerId || null,
       }
       state.employees.push(employee)
+      if (!state.leaveBalancesByEmployee) state.leaveBalancesByEmployee = {}
+      state.leaveBalancesByEmployee[id] = normalizeLeaveBalance(state.employeeStats?.leaveBalance)
 
       const payroll = resolvePayroll(employee, form.payrollInput ?? form.payroll)
       const payrollId = state.nextId
@@ -349,11 +370,7 @@ const hrmsSlice = createSlice({
       state.payrollRecords.push({
         id: payrollId,
         employeeId: id,
-        month: payroll.month,
-        basic: payroll.basic,
-        allowances: payroll.allowances,
-        deductions: payroll.deductions,
-        net: payroll.net,
+        ...payroll,
       })
 
       prependActivity(state, 'hire', form.name, `joined ${form.department}`)
@@ -396,16 +413,13 @@ const hrmsSlice = createSlice({
           managerId: form.managerId || null,
         }
         importedEmployees.push(employee)
+        if (!state.leaveBalancesByEmployee) state.leaveBalancesByEmployee = {}
+        state.leaveBalancesByEmployee[id] = normalizeLeaveBalance(state.employeeStats?.leaveBalance)
 
         const payroll = resolvePayroll(
           employee,
           form.payroll
-            ? {
-                basic: form.payroll.basic,
-                allowances: form.payroll.allowances,
-                deductions: form.payroll.deductions,
-                net: form.payroll.net,
-              }
+            ? { ...form.payroll }
             : null,
         )
         const payrollId = state.nextId
@@ -413,11 +427,7 @@ const hrmsSlice = createSlice({
         importedPayroll.push({
           id: payrollId,
           employeeId: id,
-          month: payroll.month,
-          basic: payroll.basic,
-          allowances: payroll.allowances,
-          deductions: payroll.deductions,
-          net: payroll.net,
+          ...payroll,
         })
       })
 
@@ -432,12 +442,22 @@ const hrmsSlice = createSlice({
         `bulk imported ${importedEmployees.length} employee(s) from spreadsheet`,
       )
     },
+    updateEmployeeProfileImage(state, action) {
+      const { employeeId, profileImage } = action.payload
+      state.employees = state.employees.map((e) =>
+        e.id === employeeId ? { ...e, profileImage: profileImage ?? null } : e,
+      )
+    },
     patchEmployee(state, action) {
       const { employeeId, updates, audit } = action.payload
       state.employees = state.employees.map((e) => {
         if (e.id !== employeeId) return e
         const name = updates.name ?? e.name
-        return { ...e, ...updates, avatar: avatarFromName(name) }
+        const next = { ...e, ...updates, avatar: avatarFromName(name) }
+        if (Object.prototype.hasOwnProperty.call(updates, 'profileImage')) {
+          next.profileImage = updates.profileImage ?? null
+        }
+        return next
       })
       if (audit) {
         const emp = state.employees.find((e) => e.id === employeeId)
@@ -467,12 +487,8 @@ const hrmsSlice = createSlice({
           p.employeeId === employeeId
             ? {
                 ...p,
-                month: payroll.month,
-                basic: payroll.basic,
-                allowances: payroll.allowances,
-                deductions: payroll.deductions,
-                net: payroll.net,
-              }
+              ...payroll,
+            }
             : p,
         )
       } else {
@@ -481,11 +497,7 @@ const hrmsSlice = createSlice({
         state.payrollRecords.push({
           id: payrollId,
           employeeId,
-          month: payroll.month,
-          basic: payroll.basic,
-          allowances: payroll.allowances,
-          deductions: payroll.deductions,
-          net: payroll.net,
+          ...payroll,
         })
       }
       if (audit) {
@@ -1131,6 +1143,7 @@ export const {
   updateLeaveRequest,
   submitLeave,
   submitReimbursement,
+  deleteReimbursement,
   updateReimbursementStatus,
   saveLeaveConfiguration,
   upsertHoliday,
@@ -1138,6 +1151,7 @@ export const {
   addEmployee,
   bulkImportEmployees,
   patchEmployee,
+  updateEmployeeProfileImage,
   updateEmployeePayroll,
   toggleEmployeeTask,
   recordPortalLogin,

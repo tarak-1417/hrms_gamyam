@@ -17,6 +17,7 @@ export default function BulkImportEmployeesModal({
   const [parsing, setParsing] = useState(false)
   const [preview, setPreview] = useState(null)
   const [error, setError] = useState(null)
+  const [selectedPreviewRow, setSelectedPreviewRow] = useState(null)
 
   const emailSet = useMemo(
     () => new Set(existingEmails.map((e) => String(e).toLowerCase())),
@@ -28,6 +29,7 @@ export default function BulkImportEmployeesModal({
     setPreview(null)
     setError(null)
     setParsing(false)
+    setSelectedPreviewRow(null)
   }
 
   const handleClose = () => {
@@ -44,13 +46,18 @@ export default function BulkImportEmployeesModal({
     try {
       const result = await parseEmployeeImportFile(f, new Set(emailSet))
       setPreview(result)
+      setSelectedPreviewRow(result.valid[0]?.row ?? null)
     } catch (err) {
       setError(err.message)
       setPreview(null)
+      setSelectedPreviewRow(null)
     } finally {
       setParsing(false)
     }
   }
+
+  const selectedPayrollPreview =
+    preview?.valid?.find((row) => row.row === selectedPreviewRow) || preview?.valid?.[0] || null
 
   const handleImport = () => {
     if (!preview?.valid?.length) return
@@ -66,7 +73,9 @@ export default function BulkImportEmployeesModal({
           <p className="mt-1 text-xs text-muted">
             Download the template (includes 6 sample rows like demo data). Replace with your staff
             list — one row per person. Upload here and every row is added automatically with profile
-            and payroll, in the same order as your sheet. No manual entry.
+            and payroll, in the same order as your sheet. You can upload just{' '}
+            <code className="rounded bg-white/70 px-1 py-0.5 text-[11px] text-foreground">annual_ctc</code>{' '}
+            and the app will calculate the full salary breakup automatically.
           </p>
           <button
             type="button"
@@ -147,31 +156,99 @@ export default function BulkImportEmployeesModal({
             )}
 
             {preview.valid.length > 0 && (
-              <div className="max-h-52 overflow-auto rounded-lg border border-border">
-                <table className="w-full text-left text-xs">
-                  <thead className="sticky top-0 bg-neutral-50">
-                    <tr className="text-muted">
-                      <th className="px-3 py-2 font-medium">Name</th>
-                      <th className="px-3 py-2 font-medium">Role</th>
-                      <th className="px-3 py-2 font-medium">Department</th>
-                      <th className="px-3 py-2 font-medium">Join</th>
-                      <th className="px-3 py-2 font-medium">Net pay</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {preview.valid.map((row) => (
-                      <tr key={row.row}>
-                        <td className="px-3 py-2 font-medium">{row.employee.name}</td>
-                        <td className="px-3 py-2">{row.employee.role}</td>
-                        <td className="px-3 py-2">{row.employee.department}</td>
-                        <td className="px-3 py-2">{row.employee.joinDate}</td>
-                        <td className="px-3 py-2">
-                          ₹{row.employee.payroll.net.toLocaleString('en-IN')}
-                        </td>
+              <div className="space-y-4">
+                <div className="max-h-56 overflow-auto rounded-lg border border-border">
+                  <table className="w-full text-left text-xs">
+                    <thead className="sticky top-0 bg-neutral-50">
+                      <tr className="text-muted">
+                        <th className="px-3 py-2 font-medium">Name</th>
+                        <th className="px-3 py-2 font-medium">Role</th>
+                        <th className="px-3 py-2 font-medium">Department</th>
+                        <th className="px-3 py-2 font-medium">Annual CTC</th>
+                        <th className="px-3 py-2 font-medium">Gross</th>
+                        <th className="px-3 py-2 font-medium">Deductions</th>
+                        <th className="px-3 py-2 font-medium">Net pay</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {preview.valid.map((row) => {
+                        const payroll = row.employee.payroll
+                        const isSelected = row.row === (selectedPreviewRow ?? preview.valid[0]?.row)
+                        return (
+                          <tr
+                            key={row.row}
+                            onClick={() => setSelectedPreviewRow(row.row)}
+                            className={`cursor-pointer transition ${
+                              isSelected ? 'bg-primary-light/40' : 'hover:bg-neutral-50'
+                            }`}
+                          >
+                            <td className="px-3 py-2 font-medium">{row.employee.name}</td>
+                            <td className="px-3 py-2">{row.employee.role}</td>
+                            <td className="px-3 py-2">{row.employee.department}</td>
+                            <td className="px-3 py-2">₹{payroll.yearlyCtc.toLocaleString('en-IN')}</td>
+                            <td className="px-3 py-2">₹{payroll.grossSalary.toLocaleString('en-IN')}</td>
+                            <td className="px-3 py-2 text-red-600">
+                              ₹{payroll.deductions.toLocaleString('en-IN')}
+                            </td>
+                            <td className="px-3 py-2 font-semibold text-primary-dark">
+                              ₹{payroll.net.toLocaleString('en-IN')}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {selectedPayrollPreview?.employee?.payroll && (
+                  <div className="rounded-xl border border-primary/15 bg-primary-light/20 p-4">
+                    <div className="mb-3">
+                      <p className="text-sm font-semibold text-foreground">
+                        Salary breakup preview: {selectedPayrollPreview.employee.name}
+                      </p>
+                      <p className="text-xs text-muted">
+                        This breakup is calculated from the uploaded payroll values or annual CTC.
+                      </p>
+                    </div>
+
+                    <div className="grid gap-4 xl:grid-cols-3">
+                      <PreviewBreakupGroup
+                        title="Earnings"
+                        items={[
+                          ['Basic', selectedPayrollPreview.employee.payroll.basic],
+                          ['HRA', selectedPayrollPreview.employee.payroll.hra],
+                          ['LTA', selectedPayrollPreview.employee.payroll.lta],
+                          ['Bonus', selectedPayrollPreview.employee.payroll.bonus],
+                          ['Special allowance', selectedPayrollPreview.employee.payroll.specialAllowance],
+                          ['Gross salary', selectedPayrollPreview.employee.payroll.grossSalary],
+                        ]}
+                        positive
+                      />
+                      <PreviewBreakupGroup
+                        title="Deductions"
+                        items={[
+                          ['EPF (employee)', selectedPayrollPreview.employee.payroll.epfEmployee],
+                          ['ESI (employee)', selectedPayrollPreview.employee.payroll.esiEmployee],
+                          ['Professional tax', selectedPayrollPreview.employee.payroll.professionalTax],
+                          ['Health insurance', selectedPayrollPreview.employee.payroll.healthInsurance],
+                          ['TDS', selectedPayrollPreview.employee.payroll.tds],
+                          ['Other deductions', selectedPayrollPreview.employee.payroll.otherDeductions],
+                          ['Total deductions', selectedPayrollPreview.employee.payroll.deductions],
+                        ]}
+                        negative
+                      />
+                      <PreviewBreakupGroup
+                        title="Employer contributions"
+                        items={[
+                          ['EPF (employer)', selectedPayrollPreview.employee.payroll.employerEpf],
+                          ['ESI (employer)', selectedPayrollPreview.employee.payroll.employerEsi],
+                          ['Gratuity', selectedPayrollPreview.employee.payroll.gratuity],
+                          ['Company cost', selectedPayrollPreview.employee.payroll.companyCostMonthly],
+                        ]}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -197,5 +274,27 @@ export default function BulkImportEmployeesModal({
         </div>
       </div>
     </Modal>
+  )
+}
+
+function PreviewBreakupGroup({ title, items, positive, negative }) {
+  return (
+    <div className="rounded-xl border border-primary/10 bg-white p-4 shadow-sm">
+      <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">{title}</p>
+      <div className="space-y-2 text-sm">
+        {items.map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between gap-3">
+            <span className="text-muted">{label}</span>
+            <span
+              className={`font-semibold ${
+                negative ? 'text-red-600' : positive ? 'text-primary-dark' : 'text-foreground'
+              }`}
+            >
+              ₹{Number(value || 0).toLocaleString('en-IN')}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

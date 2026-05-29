@@ -18,6 +18,7 @@ export default function GlobalSearch({
   placeholder,
   className = '',
   inputClassName = '',
+  dropdownAlign = 'left',
 }) {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -127,7 +128,7 @@ export default function GlobalSearch({
     <div ref={rootRef} className={`relative ${className}`}>
       <Search
         className={`pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${
-          isHr ? 'text-neutral-400' : 'text-muted'
+          isHr ? 'text-neutral-500' : 'text-neutral-500'
         }`}
       />
       <input
@@ -154,7 +155,11 @@ export default function GlobalSearch({
       />
 
       {open && searchQuery.trim() && (
-        <div className="global-search-panel absolute left-0 top-full z-50 mt-2 w-[min(100vw-2rem,22rem)] overflow-hidden rounded-xl border border-border bg-white shadow-xl shadow-primary/10 sm:w-96">
+        <div
+          className={`global-search-panel absolute top-full z-50 mt-2 w-[min(100vw-2rem,22rem)] overflow-hidden rounded-xl border border-border bg-white shadow-xl shadow-primary/10 sm:w-96 ${
+            dropdownAlign === 'right' ? 'right-0' : 'left-0'
+          }`}
+        >
           {results.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted">
               No results for &ldquo;{searchQuery}&rdquo;

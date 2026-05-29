@@ -1,8 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit'
 import { todayDate } from '../hrmsHelpers'
-import { estimatePayroll } from '../hrmsHelpers'
+import { estimatePayroll, normalizePayrollRecord } from '../hrmsHelpers'
+import { getDirectReports } from '../../utils/organizationHelpers'
 
 const selectHrms = (state) => state.hrms
+const selectAuthUser = (state) => state.auth?.user
 
 export const selectEmployees = createSelector(selectHrms, (hrms) => hrms.employees)
 export const selectLeaveRequests = createSelector(selectHrms, (hrms) => hrms.leaveRequests)
@@ -14,30 +16,48 @@ export const selectAdminStats = createSelector(selectHrms, (hrms) => {
   const onLeave = hrms.attendanceRecords.filter((a) => a.status === 'on-leave').length
   const pendingLeaves = hrms.leaveRequests.filter((l) => l.status === 'pending').length
   const pendingReimbursements = (hrms.reimbursementRequests || []).filter((r) => r.status === 'pending').length
+  const monthlyPayrollTotal = (hrms.payrollRecords || []).reduce((sum, record) => {
+    const employee = hrms.employees.find((e) => e.id === record.employeeId)
+    const payroll = normalizePayrollRecord(record, employee)
+    const net = payroll?.net ?? (Number(record.net) || 0)
+    return sum + net
+  }, 0)
+
   return {
     totalEmployees: total,
     presentToday: present,
     onLeave,
     pendingLeaves,
     pendingReimbursements,
+    pendingApprovals: pendingLeaves + pendingReimbursements,
+    openRoles: (hrms.jobPostings || []).filter((j) => j.status === 'active').length,
+    monthlyPayrollTotal,
     newHires: hrms.employees.filter((e) => e.joinDate >= '2026-01-01').length,
   }
 })
 
-export const selectManagerKpis = createSelector(selectHrms, (hrms) => {
-  const engineering = hrms.employees.filter(
-    (e) => e.department === 'Engineering' && e.status !== 'inactive',
-  )
-  const teamIds = new Set(engineering.map((e) => e.id))
-  const present = hrms.attendanceRecords.filter(
+export const selectManagerKpis = createSelector([selectHrms, selectAuthUser], (hrms, user) => {
+  const managerId = user?.employeeId || null
+  const team = managerId ? getDirectReports(hrms.employees, managerId) : []
+  const teamIds = new Set(team.map((e) => e.id))
+
+  const present = (hrms.attendanceRecords || []).filter(
     (a) => teamIds.has(a.employeeId) && a.status === 'present',
   ).length
+
+  const pendingLeaves = hrms.leaveRequests.filter(
+    (l) => l.status === 'pending' && teamIds.has(l.employeeId),
+  ).length
+  const pendingReimbursements = (hrms.reimbursementRequests || []).filter(
+    (r) => r.status === 'pending' && teamIds.has(r.employeeId),
+  ).length
+
   return {
-    teamSize: engineering.length,
+    teamSize: team.length,
     presentToday: present,
-    pendingApprovals: hrms.leaveRequests.filter((l) => l.status === 'pending').length,
+    pendingApprovals: pendingLeaves + pendingReimbursements,
     openPositions: (hrms.jobPostings || []).filter((j) => j.status === 'active').length,
-    avgAttendance: engineering.length ? Math.round((present / engineering.length) * 100) : 0,
+    avgAttendance: team.length ? Math.round((present / team.length) * 100) : 0,
   }
 })
 
@@ -77,8 +97,10 @@ export const makeSelectEmployeeDetails = (employeeId) =>
     if (!employee) return null
     const date = todayDate()
     const payroll =
-      hrms.payrollRecords.find((p) => p.employeeId === employeeId) ||
-      estimatePayroll(employee)
+      normalizePayrollRecord(
+        hrms.payrollRecords.find((p) => p.employeeId === employeeId),
+        employee,
+      ) || estimatePayroll(employee)
     return {
       employee,
       payroll,

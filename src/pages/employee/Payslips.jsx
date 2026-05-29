@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Download, Eye } from 'lucide-react'
+import BrandLogo, { GAMYAM_LOGO_URL } from '../../components/BrandLogo'
 import Badge from '../../components/ui/Badge'
 import Card from '../../components/ui/Card'
 import Modal from '../../components/ui/Modal'
 import { useAuth } from '../../hooks/useAuth'
 import { useHrms } from '../../hooks/useHrms'
+import { normalizePayrollRecord } from '../../store/hrmsHelpers'
 import { formatINR } from '../../utils/currency'
 
 function parsePayrollMonth(month) {
@@ -33,8 +35,45 @@ function sanitizeFilenamePart(value) {
     .toLowerCase()
 }
 
+function getPayslipBreakup(record) {
+  return {
+    earnings: [
+      ['Basic salary', record.basic],
+      ['HRA', record.hra],
+      ['LTA', record.lta],
+      ['Bonus', record.bonus],
+      ['Special allowance', record.specialAllowance],
+      ['Gross salary', record.grossSalary],
+    ],
+    deductions: [
+      ['EPF (employee)', record.epfEmployee],
+      ['ESI (employee)', record.esiEmployee],
+      ['Professional tax', record.professionalTax],
+      ['Health insurance', record.healthInsurance],
+      ['TDS', record.tds],
+      ['Other deductions', record.otherDeductions],
+      ['Total deductions', record.deductions],
+    ],
+    employerContributions: [
+      ['EPF (employer)', record.employerEpf],
+      ['ESI (employer)', record.employerEsi],
+      ['Gratuity', record.gratuity],
+      ['Total employer contributions', record.employerContributions],
+    ],
+  }
+}
+
+function renderPayslipRows(items) {
+  return items
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">${label}</td><td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600;">${formatINR(value)}</td></tr>`,
+    )
+    .join('')
+}
+
 function buildPayslipHtml(record, employeeName) {
-  const grossPay = (record.basic ?? 0) + (record.allowances ?? 0)
+  const breakup = getPayslipBreakup(record)
 
   return `<!doctype html>
 <html lang="en">
@@ -43,50 +82,74 @@ function buildPayslipHtml(record, employeeName) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Payslip - ${record.month}</title>
     <style>
-      body { font-family: Arial, sans-serif; margin: 32px; color: #1f2937; }
+      body { font-family: 'Inter', Arial, sans-serif; margin: 32px; color: #1f2937; }
       .card { border: 1px solid #e5e7eb; border-radius: 16px; padding: 24px; max-width: 760px; margin: 0 auto; }
       .header { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 24px; }
-      .brand { font-size: 24px; font-weight: 700; color: #14532d; }
+      .brand-row { display: flex; align-items: center; gap: 16px; }
+      .brand-logo { height: 40px; width: auto; max-width: 160px; object-fit: contain; }
+      .brand-title { font-size: 22px; font-weight: 700; color: #111827; margin-top: 8px; }
       .muted { color: #6b7280; font-size: 14px; }
       .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
       .metric { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; background: #f9fafb; }
       .metric strong { display: block; margin-top: 8px; font-size: 20px; }
       .total { background: #eefbf2; border-color: #bbf7d0; }
+      .section-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+      .sheet { border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+      .sheet h3 { margin: 0; padding: 14px 16px; background: #f9fafb; font-size: 14px; }
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
       @media print { body { margin: 0; } .card { border: none; padding: 0; max-width: none; } }
     </style>
   </head>
   <body>
     <div class="card">
       <div class="header">
-        <div>
-          <div class="brand">Payslip</div>
-          <div class="muted">Employee: ${employeeName}</div>
-          <div class="muted">Payroll Month: ${record.month}</div>
+        <div class="brand-row">
+          <img src="${GAMYAM_LOGO_URL}" alt="Gamyam" class="brand-logo" />
+          <div>
+            <div class="brand-title">Payslip</div>
+            <div class="muted">Employee: ${employeeName}</div>
+            <div class="muted">Payroll Month: ${record.month}</div>
+          </div>
         </div>
         <div>
-          <div class="muted">Generated from HRMS</div>
+          <div class="muted">Gamyam HRMS</div>
+          <div class="muted">Employee Portal</div>
         </div>
       </div>
       <div class="grid">
         <div class="metric">
-          <div class="muted">Basic Salary</div>
-          <strong>${formatINR(record.basic)}</strong>
+          <div class="muted">Annual CTC</div>
+          <strong>${formatINR(record.yearlyCtc)}</strong>
         </div>
         <div class="metric">
-          <div class="muted">Allowances</div>
-          <strong>${formatINR(record.allowances)}</strong>
+          <div class="muted">Gross Salary</div>
+          <strong>${formatINR(record.grossSalary)}</strong>
         </div>
         <div class="metric">
           <div class="muted">Deductions</div>
           <strong>${formatINR(record.deductions)}</strong>
         </div>
         <div class="metric">
-          <div class="muted">Gross Pay</div>
-          <strong>${formatINR(grossPay)}</strong>
+          <div class="muted">Employer Cost</div>
+          <strong>${formatINR(record.companyCostMonthly)}</strong>
         </div>
         <div class="metric total">
           <div class="muted">Net Pay</div>
           <strong>${formatINR(record.net)}</strong>
+        </div>
+      </div>
+      <div class="section-grid">
+        <div class="sheet">
+          <h3>Earnings</h3>
+          <table><tbody>${renderPayslipRows(breakup.earnings)}</tbody></table>
+        </div>
+        <div class="sheet">
+          <h3>Deductions</h3>
+          <table><tbody>${renderPayslipRows(breakup.deductions)}</tbody></table>
+        </div>
+        <div class="sheet">
+          <h3>Employer Contributions</h3>
+          <table><tbody>${renderPayslipRows(breakup.employerContributions)}</tbody></table>
         </div>
       </div>
     </div>
@@ -109,7 +172,9 @@ export default function Payslips() {
       null
     const source = employeeRecords.length > 0 ? employeeRecords : fallback ? [fallback] : []
 
-    return [...source].sort((a, b) => {
+    return [...source]
+      .map((record) => normalizePayrollRecord(record))
+      .sort((a, b) => {
       const aDate = parsePayrollMonth(a.month)
       const bDate = parsePayrollMonth(b.month)
       return (bDate?.getTime() || 0) - (aDate?.getTime() || 0)
@@ -170,7 +235,7 @@ export default function Payslips() {
     <div className="space-y-6">
       <div>
         <h1 className="page-title">Payslips</h1>
-        <p className="page-subtitle">View your monthly salary summary using the payroll data already in the system.</p>
+        <p className="page-subtitle">View your monthly salary breakup using the payroll data already in the system.</p>
       </div>
 
       <Card
@@ -212,7 +277,7 @@ export default function Payslips() {
                 <tbody className="divide-y divide-border bg-white">
                   {filteredPayslips.map((record, index) => {
                     const status = getPayslipStatus(record, filteredPayslips[0]?.month)
-                    const gross = (record.basic ?? 0) + (record.allowances ?? 0)
+                    const gross = record.grossSalary ?? (record.basic ?? 0) + (record.allowances ?? 0)
                     const isSelected = String(record.id) === String(selectedPayslipId)
 
                     return (
@@ -259,41 +324,53 @@ export default function Payslips() {
       >
         {selectedPayslip && (
           <div className="space-y-5">
-            <div className="flex flex-col gap-3 rounded-xl border border-border bg-neutral-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-foreground">{user?.name || 'Employee'}</p>
-                <p className="mt-1 text-xs text-muted">Payroll month: {selectedPayslip.month}</p>
+            <div className="flex flex-col gap-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary-light/50 via-white to-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+              <div className="flex min-w-0 items-center gap-4">
+                <BrandLogo className="h-10 sm:h-11" variant="header" />
+                <div className="min-w-0 border-l border-neutral-200/90 pl-4">
+                  <p className="text-sm font-semibold text-foreground">{user?.name || 'Employee'}</p>
+                  <p className="mt-0.5 text-xs text-neutral-500">
+                    Payroll month: {selectedPayslip.month}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge status={getPayslipStatus(selectedPayslip, filteredPayslips[0]?.month).tone}>
-                  {getPayslipStatus(selectedPayslip, filteredPayslips[0]?.month).label}
-                </Badge>
-              </div>
+              <Badge status={getPayslipStatus(selectedPayslip, filteredPayslips[0]?.month).tone}>
+                {getPayslipStatus(selectedPayslip, filteredPayslips[0]?.month).label}
+              </Badge>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <div className="rounded-xl border border-border bg-neutral-50/70 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Basic Salary</p>
-                <p className="mt-2 text-lg font-semibold text-foreground">{formatINR(selectedPayslip.basic)}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Annual CTC</p>
+                <p className="mt-2 text-lg font-semibold text-foreground">{formatINR(selectedPayslip.yearlyCtc)}</p>
               </div>
               <div className="rounded-xl border border-border bg-neutral-50/70 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Allowances</p>
-                <p className="mt-2 text-lg font-semibold text-primary-dark">{formatINR(selectedPayslip.allowances)}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Gross Salary</p>
+                <p className="mt-2 text-lg font-semibold text-primary-dark">{formatINR(selectedPayslip.grossSalary)}</p>
               </div>
               <div className="rounded-xl border border-border bg-neutral-50/70 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">Deductions</p>
                 <p className="mt-2 text-lg font-semibold text-red-600">{formatINR(selectedPayslip.deductions)}</p>
               </div>
               <div className="rounded-xl border border-border bg-neutral-50/70 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Gross Pay</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Company Cost</p>
                 <p className="mt-2 text-lg font-semibold text-foreground">
-                  {formatINR((selectedPayslip.basic ?? 0) + (selectedPayslip.allowances ?? 0))}
+                  {formatINR(selectedPayslip.companyCostMonthly)}
                 </p>
               </div>
               <div className="rounded-xl border border-primary/20 bg-primary-light/40 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-primary-dark/75">Net Pay</p>
                 <p className="mt-2 text-xl font-bold text-primary">{formatINR(selectedPayslip.net)}</p>
               </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-3">
+              <PayslipColumn title="Earnings" items={getPayslipBreakup(selectedPayslip).earnings} positive />
+              <PayslipColumn title="Deductions" items={getPayslipBreakup(selectedPayslip).deductions} negative />
+              <PayslipColumn
+                title="Employer contributions"
+                items={getPayslipBreakup(selectedPayslip).employerContributions}
+              />
             </div>
 
             <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
@@ -316,6 +393,28 @@ export default function Payslips() {
           </div>
         )}
       </Modal>
+    </div>
+  )
+}
+
+function PayslipColumn({ title, items, positive, negative }) {
+  return (
+    <div className="rounded-xl border border-border bg-white p-4">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">{title}</p>
+      <div className="space-y-2">
+        {items.map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-muted">{label}</span>
+            <span
+              className={`font-semibold ${
+                negative ? 'text-red-600' : positive ? 'text-primary-dark' : 'text-foreground'
+              }`}
+            >
+              {formatINR(value)}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

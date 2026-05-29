@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx'
+import { resolvePayroll, DEFAULT_PAYROLL_MONTH } from '../store/hrmsHelpers'
 
 /**
  * Excel columns match Gamyam employee records (same as demo data in hrmsData.json).
@@ -13,14 +14,32 @@ export const EMPLOYEE_IMPORT_COLUMNS = [
   { key: 'joinDate', aliases: ['join_date', 'joining_date', 'date_of_joining', 'doj', 'start_date'] },
   { key: 'phone', aliases: ['phone', 'mobile', 'contact', 'phone_number'] },
   { key: 'address', aliases: ['address', 'location', 'city', 'work_location'] },
-  { key: 'basic', aliases: ['basic', 'basic_salary', 'basic_pay', 'monthly_basic'] },
-  { key: 'allowances', aliases: ['allowances', 'hra', 'allowance', 'monthly_allowances'] },
-  { key: 'deductions', aliases: ['deductions', 'deduction', 'monthly_deductions', 'pf_etc'] },
-  { key: 'net', aliases: ['net', 'net_salary', 'take_home', 'monthly_net'] },
+  {
+    key: 'payrollMonth',
+    aliases: ['payroll_month', 'salary_month', 'month', 'pay_month'],
+  },
   {
     key: 'annualCtc',
     aliases: ['annual_ctc', 'ctc', 'annual_salary', 'yearly_ctc', 'package'],
   },
+  { key: 'basic', aliases: ['basic', 'basic_salary', 'basic_pay', 'monthly_basic'] },
+  { key: 'hra', aliases: ['hra', 'house_rent_allowance'] },
+  { key: 'lta', aliases: ['lta', 'leave_travel_allowance'] },
+  { key: 'bonus', aliases: ['bonus', 'monthly_bonus'] },
+  {
+    key: 'specialAllowance',
+    aliases: ['special_allowance', 'specialallowance', 'special', 'residual_allowance'],
+  },
+  { key: 'allowances', aliases: ['allowances', 'allowance', 'monthly_allowances'] },
+  { key: 'professionalTax', aliases: ['professional_tax', 'pt', 'prof_tax'] },
+  {
+    key: 'healthInsurance',
+    aliases: ['health_insurance', 'insurance', 'medical_insurance'],
+  },
+  { key: 'tds', aliases: ['tds', 'income_tax'] },
+  { key: 'otherDeductions', aliases: ['other_deductions', 'other_deduction'] },
+  { key: 'deductions', aliases: ['deductions', 'deduction', 'monthly_deductions', 'pf_etc'] },
+  { key: 'net', aliases: ['net', 'net_salary', 'take_home', 'monthly_net'] },
   {
     key: 'legacyEmployeeId',
     aliases: ['legacy_id', 'previous_id', 'old_employee_id', 'external_id', 'source_id'],
@@ -37,10 +56,17 @@ export const EXCEL_HEADERS = [
   'join_date',
   'phone',
   'address',
+  'payroll_month',
+  'annual_ctc',
   'basic',
-  'allowances',
-  'deductions',
-  'net',
+  'hra',
+  'lta',
+  'bonus',
+  'special_allowance',
+  'professional_tax',
+  'health_insurance',
+  'tds',
+  'other_deductions',
 ]
 
 /** Example rows copied from app demo data (hrmsData.json employees + payroll) */
@@ -54,10 +80,17 @@ export const EXCEL_SAMPLE_ROWS = [
     '2022-03-15',
     '+91 98765 43210',
     'Hyderabad, Telangana',
-    65000,
-    12000,
-    8500,
-    68500,
+    'April 2026',
+    924000,
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
   ],
   [
     'Sneha Reddy',
@@ -68,10 +101,17 @@ export const EXCEL_SAMPLE_ROWS = [
     '2021-08-01',
     '+91 98765 43211',
     '',
-    75000,
-    15000,
-    10200,
-    79800,
+    'April 2026',
+    1080000,
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
   ],
   [
     'Rahul Verma',
@@ -82,10 +122,17 @@ export const EXCEL_SAMPLE_ROWS = [
     '2023-01-10',
     '+91 98765 43212',
     '',
-    45000,
-    8000,
-    5200,
-    47800,
+    'April 2026',
+    636000,
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
   ],
   [
     'Kavya Nair',
@@ -96,10 +143,17 @@ export const EXCEL_SAMPLE_ROWS = [
     '2020-11-20',
     '+91 98765 43213',
     '',
-    72000,
-    14000,
-    9800,
-    76200,
+    'April 2026',
+    1032000,
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
   ],
   [
     'Dev Patel',
@@ -110,10 +164,17 @@ export const EXCEL_SAMPLE_ROWS = [
     '2022-07-05',
     '+91 98765 43214',
     '',
-    52000,
-    9000,
-    6100,
-    54900,
+    'April 2026',
+    732000,
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
   ],
   [
     'Isha Gupta',
@@ -124,10 +185,17 @@ export const EXCEL_SAMPLE_ROWS = [
     '2023-06-12',
     '+91 98765 43215',
     '',
-    48000,
-    8500,
-    5500,
-    51000,
+    'April 2026',
+    678000,
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
   ],
 ]
 
@@ -137,12 +205,6 @@ function normalizeHeader(h) {
     .toLowerCase()
     .replace(/\s+/g, '_')
     .replace(/[^a-z0-9_]/g, '')
-}
-
-function parseNumber(val) {
-  if (val == null || val === '') return null
-  const n = Number(String(val).replace(/[,₹\s]/g, ''))
-  return Number.isFinite(n) ? Math.round(n) : null
 }
 
 function parseDate(val) {
@@ -215,43 +277,38 @@ function mapRowToEmployee(rawRow, existingEmails) {
 
   const joinDate = parseDate(get('joinDate') || normalized.join_date) || todayIso()
 
-  const basicRaw = get('basic')
-  const allowancesRaw = get('allowances')
-  const deductionsRaw = get('deductions')
-  const netRaw = get('net')
-  const annualCtc = parseNumber(get('annualCtc'))
-
-  const hasPayrollInput =
-    basicRaw || allowancesRaw || deductionsRaw || netRaw || annualCtc != null
-
-  let payroll
-  if (hasPayrollInput) {
-    let basic = parseNumber(basicRaw)
-    const allowances = parseNumber(allowancesRaw) ?? 0
-    const deductions = parseNumber(deductionsRaw) ?? 0
-    let net = parseNumber(netRaw)
-
-    if (basic == null && annualCtc != null) {
-      basic = Math.round(annualCtc / 12 / 1.18)
-    }
-    if (basic == null) basic = 45000
-    if (net == null) net = basic + allowances - deductions
-
-    payroll = {
-      basic,
-      allowances,
-      deductions,
-      net,
-      month: 'April 2026',
-    }
+  const department = get('department') || 'Engineering'
+  const payrollInput = {
+    month: get('payrollMonth') || DEFAULT_PAYROLL_MONTH,
+    annualCtc: get('annualCtc'),
+    basic: get('basic'),
+    hra: get('hra'),
+    lta: get('lta'),
+    bonus: get('bonus'),
+    specialAllowance: get('specialAllowance'),
+    professionalTax: get('professionalTax'),
+    healthInsurance: get('healthInsurance'),
+    tds: get('tds'),
+    otherDeductions: get('otherDeductions'),
+    allowances: get('allowances'),
+    deductions: get('deductions'),
+    net: get('net'),
   }
+  const payroll = resolvePayroll(
+    {
+      id: '',
+      department,
+      role,
+    },
+    payrollInput,
+  )
 
   return {
     ok: true,
     employee: {
       name,
       email,
-      department: get('department') || 'Engineering',
+      department,
       role,
       phone: get('phone') || '—',
       address: get('address') || '',
@@ -336,10 +393,17 @@ export function buildEmployeeImportWorkbook() {
     { wch: 12 },
     { wch: 18 },
     { wch: 24 },
-    { wch: 10 },
+    { wch: 16 },
+    { wch: 14 },
     { wch: 12 },
     { wch: 12 },
-    { wch: 10 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 18 },
+    { wch: 14 },
+    { wch: 16 },
+    { wch: 12 },
+    { wch: 16 },
   ]
   XLSX.utils.book_append_sheet(wb, dataSheet, 'Employees')
 
@@ -349,14 +413,37 @@ export function buildEmployeeImportWorkbook() {
     ['1. Keep row 1 as headers. Add one employee per row (row 2 downward).'],
     ['2. Order matters: employees appear in the same order as your Excel rows.'],
     ['3. Required columns: name, email, role.'],
-    ['4. Fill department, status, join_date, phone, address like the sample rows.'],
-    ['5. Payroll: basic, allowances, deductions, net (same as Payslips in the app).'],
-    ['6. status must be: active | on-leave | inactive'],
-    ['7. Save file → Admin → Employees → Bulk import → upload.'],
+    ['4. Fill department, status, join_date, phone, and address like the sample rows.'],
+    ['5. Payroll option A: provide only annual_ctc and let the app calculate the full salary breakup.'],
+    ['6. Payroll option B: override any breakup values like basic, hra, lta, bonus, special_allowance, tds, or other_deductions.'],
+    ['7. The app will calculate EPF, ESI, gratuity, deductions, gross salary, net pay, and company cost automatically.'],
+    ['8. status must be: active | on-leave | inactive'],
+    ['9. Save file → Admin → Employees → Bulk import → upload.'],
     [''],
     ['You can delete the 6 sample rows and paste your real staff list instead.'],
   ]
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(instructions), 'Instructions')
+
+  const payrollGuide = [
+    ['Payroll breakup guide'],
+    [''],
+    ['Formula defaults used by HRMS'],
+    ['Basic', '50% of annual CTC / 12'],
+    ['HRA', '40% of basic'],
+    ['LTA', 'If basic is above ₹15,000, then 8.33% of basic; otherwise 0'],
+    ['Bonus', 'Fixed at ₹2,750 per month'],
+    ['Special allowance', 'Adjustment figure so final cost to company matches monthly CTC'],
+    ['EPF employee/employer', '12% of basic, capped at ₹1,800 monthly'],
+    ['ESI', 'Applied only when gross salary is within ESI limit'],
+    ['Professional tax', 'Slab based: 0 / ₹150 / ₹200 depending on gross salary'],
+    ['Gratuity', '4.81% of basic'],
+    [''],
+    ['Tip'],
+    ['If you fill annual_ctc only, HRMS will auto-calculate the whole breakup and show it in preview before import.'],
+  ]
+  const guideSheet = XLSX.utils.aoa_to_sheet(payrollGuide)
+  guideSheet['!cols'] = [{ wch: 28 }, { wch: 52 }]
+  XLSX.utils.book_append_sheet(wb, guideSheet, 'Payroll Guide')
   return wb
 }
 

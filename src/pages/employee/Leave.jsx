@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CalendarDays, PartyPopper, Flag, Star, Info } from 'lucide-react'
+import LeaveBalanceCard from '../../components/employee/LeaveBalanceCard'
 import Card from '../../components/ui/Card'
 import DatePicker from '../../components/ui/DatePicker'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import { useAuth } from '../../hooks/useAuth'
 import { useHrms } from '../../hooks/useHrms'
+import { getEarnedLeavePolicy } from '../../utils/earnedLeavePolicy'
+import {
+  buildEmployeeLeaveSummary,
+  buildLeaveBalanceCardItems,
+  getLeaveRequestValidation,
+} from '../../utils/leaveBalance'
 import {
   countHolidaysByType,
   getHolidayTypeMeta,
@@ -55,10 +62,12 @@ function getHolidayTypeIcon(type) {
 export default function EmployeeLeave() {
   const { user } = useAuth()
   const {
+    employees = [],
     leaveRequests,
     submitLeave,
     showToast,
     employeeStats,
+    leaveBalancesByEmployee = {},
     holidays = [],
     leavePolicy = {},
     optionalHolidayClaims = [],
@@ -79,14 +88,43 @@ export default function EmployeeLeave() {
   const [activeTab, setActiveTab] = useState('calendar')
 
   const myLeaves = leaveRequests.filter((l) => l.employeeId === user?.employeeId)
-  const balance = employeeStats?.leaveBalance ?? { casual: 0, sick: 0, earned: 0 }
-
+  const currentEmployee = useMemo(
+    () => employees.find((employee) => employee.id === user?.employeeId) ?? null,
+    [employees, user?.employeeId],
+  )
   const myOptionalClaims = optionalHolidayClaims.filter(
     (c) => c.employeeId === user?.employeeId && c.year === (leavePolicy.year ?? 2026),
   )
-  const optionalUsed = myOptionalClaims.filter((c) => c.status === 'availed').length
-  const optionalLimit = leavePolicy.optionalHolidayLimit ?? 2
-  const optionalRemaining = Math.max(0, optionalLimit - optionalUsed)
+  const leaveSummary = useMemo(
+    () =>
+      buildEmployeeLeaveSummary({
+        employee: currentEmployee,
+        employeeId: user?.employeeId,
+        leaveRequests,
+        leaveBalancesByEmployee,
+        fallbackBalance: employeeStats?.leaveBalance,
+        optionalHolidayClaims,
+        leavePolicy,
+      }),
+    [
+      currentEmployee,
+      user?.employeeId,
+      leaveRequests,
+      leaveBalancesByEmployee,
+      employeeStats?.leaveBalance,
+      optionalHolidayClaims,
+      leavePolicy,
+    ],
+  )
+  const balance = leaveSummary.remaining
+  const leaveBalanceCards = useMemo(
+    () => buildLeaveBalanceCardItems(leaveSummary),
+    [leaveSummary],
+  )
+  const optionalUsed = leaveSummary.optionalUsed
+  const optionalLimit = leaveSummary.optionalLimit
+  const optionalRemaining = leaveSummary.optionalRemaining
+  const earnedLeavePolicy = useMemo(() => getEarnedLeavePolicy(leavePolicy), [leavePolicy])
 
   const leaveTypeOptions = useMemo(
     () =>
@@ -149,6 +187,31 @@ export default function EmployeeLeave() {
       durationType: form.durationType,
     })
     const remaining = getLeaveTypeRemaining(form.type, balance, optionalRemaining)
+    const requestSummary = buildEmployeeLeaveSummary({
+      employee: currentEmployee,
+      employeeId: user?.employeeId,
+      leaveRequests,
+      leaveBalancesByEmployee,
+      fallbackBalance: employeeStats?.leaveBalance,
+      optionalHolidayClaims,
+      leavePolicy,
+      asOfDate: from,
+    })
+    const validation = getLeaveRequestValidation(
+      {
+        type: form.type,
+        from,
+        to,
+        days: daysRequested,
+      },
+      requestSummary,
+      leavePolicy,
+    )
+
+    if (validation.reasons?.length) {
+      showToast(validation.reasons[0])
+      return
+    }
 
     if (remaining <= 0) {
       showToast(`No ${form.type.toLowerCase()} balance remaining`)
@@ -206,10 +269,17 @@ export default function EmployeeLeave() {
         <p className="page-subtitle">Balances, company holidays, optional offs, and leave applications</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <BalanceCard label="Casual Leave" value={balance.casual} />
-        <BalanceCard label="Sick Leave" value={balance.sick} />
-        <BalanceCard label="Earned Leave" value={balance.earned} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {leaveBalanceCards.map((card) => (
+          <LeaveBalanceCard
+            key={card.key}
+            shortLabel={card.shortLabel}
+            remaining={card.remaining}
+            total={card.total}
+            used={card.used}
+            unit={card.unit}
+          />
+        ))}
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-border pb-1">
@@ -301,6 +371,17 @@ export default function EmployeeLeave() {
                 To use an optional holiday, apply leave with type <strong>Optional Holiday</strong> on the
                 Apply tab, or contact HR to record your selection.
               </div>
+              <PolicyRow
+                icon={Info}
+                title="Earned leave policy"
+                text={`${
+                  earnedLeavePolicy.isPaid ? 'Paid' : 'Unpaid'
+                } leave that accrues ${earnedLeavePolicy.accrualDaysPerMonth} day(s) every month, carries forward up to ${
+                  earnedLeavePolicy.carryForwardCapDays
+                } day(s), and ${
+                  earnedLeavePolicy.retroactiveAllowed ? 'allows' : 'does not allow'
+                } retroactive requests.`}
+              />
             </div>
           </Card>
         </div>
@@ -427,6 +508,13 @@ export default function EmployeeLeave() {
                 <span className="text-amber-700">No balance left for this leave type</span>
               )}
             </p>
+            {form.type === 'Earned Leave' && (
+              <p className="mt-2 text-xs text-muted">
+                Policy: {earnedLeavePolicy.accrualDaysPerMonth} day(s) accrue each month, carry forward up to{' '}
+                {earnedLeavePolicy.carryForwardCapDays} day(s), and{' '}
+                {earnedLeavePolicy.retroactiveAllowed ? 'retroactive requests are allowed' : 'retroactive requests are blocked'}.
+              </p>
+            )}
           </div>
           {isHalfDay ? (
             <>
@@ -500,16 +588,6 @@ export default function EmployeeLeave() {
           </div>
         </form>
       </Modal>
-    </div>
-  )
-}
-
-function BalanceCard({ label, value }) {
-  return (
-    <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-primary">{value}</p>
-      <p className="text-xs text-muted">days left</p>
     </div>
   )
 }

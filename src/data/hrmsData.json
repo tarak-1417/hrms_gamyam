@@ -128,7 +128,28 @@
       "address": "Hyderabad, Telangana",
       "avatar": "AM",
       "branchId": "br-hyd",
-      "managerId": "EMP007"
+      "managerId": "EMP007",
+      "personalDetails": {
+        "dateOfBirth": "1995-08-12",
+        "gender": "Male",
+        "bloodGroup": "O+",
+        "aadhaar": "234567890123",
+        "pan": "ABCPM4521K",
+        "uan": "101234567890",
+        "nationality": "Indian",
+        "maritalStatus": "Single",
+        "personalEmail": "arjun.mehta@gmail.com",
+        "emergencyContactName": "Ravi Mehta",
+        "emergencyContactRelation": "Father",
+        "emergencyContactPhone": "+91 98765 43100"
+      },
+      "employmentDetails": {
+        "employmentType": "Full-time",
+        "workMode": "Hybrid",
+        "designationLevel": "L4",
+        "costCenter": "ENG-PRODUCT",
+        "workLocation": "Hyderabad — HITEC City"
+      }
     },
     {
       "id": "EMP002",
@@ -284,31 +305,47 @@
     {
       "id": 21,
       "employeeId": "EMP001",
-      "employeeName": "Aarav Sharma",
-      "requestFor": "Aarav Sharma",
-      "amount": 2450,
+      "employeeName": "Arjun Mehta",
+      "requestFor": "Arjun Mehta",
+      "amount": 4500,
       "expenseType": "Travel",
       "expenseDate": "2026-05-12",
       "supportingDocuments": ["uber-receipt-may12.pdf", "hotel-invoice-may12.pdf"],
-      "comments": "Client visit travel from Hyderabad to Secunderabad.",
+      "comments": "Client meeting in Mumbai",
       "status": "pending",
       "submittedAt": "2026-05-13"
     },
     {
       "id": 22,
       "employeeId": "EMP001",
-      "employeeName": "Aarav Sharma",
-      "requestFor": "Aarav Sharma",
-      "amount": 1800,
-      "expenseType": "Meals",
+      "employeeName": "Arjun Mehta",
+      "requestFor": "Arjun Mehta",
+      "amount": 3950,
+      "expenseType": "Food & Beverages",
       "expenseDate": "2026-04-24",
       "supportingDocuments": ["client-dinner-apr24.jpg"],
-      "comments": "Dinner expense during customer meeting.",
+      "comments": "Team lunch during sprint review",
       "status": "approved",
       "submittedAt": "2026-04-25",
       "reviewedAt": "2026-04-27",
       "reviewedBy": "Sneha Reddy",
       "reviewerComment": "Approved as per travel and client entertainment policy."
+    },
+    {
+      "id": 24,
+      "employeeId": "EMP001",
+      "employeeName": "Arjun Mehta",
+      "requestFor": "Arjun Mehta",
+      "amount": 1200,
+      "expenseType": "Office Supplies",
+      "expenseDate": "2026-04-10",
+      "supportingDocuments": ["stationery-invoice-apr.pdf"],
+      "comments": "Laptop accessories",
+      "status": "rejected",
+      "submittedAt": "2026-04-11",
+      "reviewedAt": "2026-04-12",
+      "reviewedBy": "Sneha Reddy",
+      "reviewerComment": "Please resubmit with itemized GST invoice."
     },
     {
       "id": 23,
@@ -369,7 +406,24 @@
     "year": 2026,
     "optionalHolidayLimit": 2,
     "optionalHolidayNote": "You may avail up to 2 optional holidays per calendar year. Apply at least 3 working days in advance.",
-    "restrictedHolidayNote": "National and festival holidays are company-wide offs. No leave application required."
+    "restrictedHolidayNote": "National and festival holidays are company-wide offs. No leave application required.",
+    "earnedLeavePolicy": {
+      "isPaid": true,
+      "isLimited": true,
+      "retroactiveAllowed": true,
+      "balanceExpiry": "",
+      "accrualDaysPerMonth": 0.5,
+      "proratedInitialBalance": false,
+      "proratedNextAccrual": true,
+      "carryForwardText": "The entire balance will be carried over but not more than 30 days",
+      "carryForwardCapDays": 30,
+      "maxBalanceCapEnabled": true,
+      "maxBalanceCapDays": 30,
+      "negativeBalanceAllowed": false,
+      "sandwichEnabled": false,
+      "maxUsagePerPeriodEnabled": false,
+      "maxUsagePerPeriodDays": 0
+    }
   },
   "holidays": [
     { "id": 1, "date": "2026-01-26", "name": "Republic Day", "type": "national" },
@@ -460,6 +514,32 @@
       "description": "Formal written warning for policy or conduct issues.",
       "updatedAt": "2026-04-05",
       "body": "PRIVATE & CONFIDENTIAL\n\nDate: {{letter_date}}\n\nTo: {{employee_name}} ({{employee_id}})\nDepartment: {{department}}\n\nSubject: Warning Letter\n\nDear {{employee_name}},\n\nThis letter serves as a formal warning regarding: {{warning_reason}}.\n\nYou are required to take corrective action immediately. Failure to improve may lead to further disciplinary action up to and including termination.\n\nPlease acknowledge receipt by signing below.\n\nEmployee acknowledgment: _________________  Date: _________\n\n{{hr_signatory}}\nHuman Resources"
+    }
+  ],
+  "employeeDocuments": [
+    {
+      "id": "ed-1",
+      "employeeId": "EMP001",
+      "name": "Employment Contract.pdf",
+      "date": "2022-03-15",
+      "size": "245 KB",
+      "category": "Employment"
+    },
+    {
+      "id": "ed-2",
+      "employeeId": "EMP001",
+      "name": "Offer Letter.pdf",
+      "date": "2022-03-10",
+      "size": "128 KB",
+      "category": "Onboarding"
+    },
+    {
+      "id": "ed-3",
+      "employeeId": "EMP001",
+      "name": "Tax Declaration 2026.pdf",
+      "date": "2026-04-01",
+      "size": "89 KB",
+      "category": "Finance"
     }
   ],
   "generatedDocuments": [],

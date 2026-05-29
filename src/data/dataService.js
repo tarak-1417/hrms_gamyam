@@ -1,6 +1,8 @@
 import hrmsData from './hrmsData.json'
 import platformData from './platformData.json'
 import { syncOfficeLocationsFromBranches } from '../utils/organizationHelpers'
+import { normalizeLeaveBalance } from '../utils/leaveBalance'
+import { normalizePayrollRecord } from '../store/hrmsHelpers'
 
 /** Deep clone JSON so in-app edits never mutate source files */
 export function cloneJson(data) {
@@ -15,6 +17,19 @@ export function getInitialHrmsState() {
       state.branches,
       state.attendancePolicy.radiusMeters,
     )
+  }
+  const defaultLeaveBalance = normalizeLeaveBalance(state.employeeStats?.leaveBalance)
+  if (!state.leaveBalancesByEmployee) state.leaveBalancesByEmployee = {}
+  ;(state.employees || []).forEach((employee) => {
+    state.leaveBalancesByEmployee[employee.id] = normalizeLeaveBalance(
+      state.leaveBalancesByEmployee[employee.id] || defaultLeaveBalance,
+    )
+  })
+  if (Array.isArray(state.payrollRecords)) {
+    state.payrollRecords = state.payrollRecords.map((record) => {
+      const employee = state.employees?.find((item) => item.id === record.employeeId) || null
+      return normalizePayrollRecord(record, employee)
+    })
   }
   return state
 }

@@ -10,6 +10,28 @@ export function getTimeGreeting(date = new Date()) {
   return 'Good evening'
 }
 
+/** e.g. WEDNESDAY · MAY 27, 2026 */
+export function formatWelcomeDate(date = new Date()) {
+  const { weekday, dateLine } = formatWelcomeDateParts(date)
+  return `${weekday} · ${dateLine.toUpperCase()}`
+}
+
+/** Split date parts for dashboard welcome header */
+export function formatWelcomeDateParts(date = new Date()) {
+  const weekday = date.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()
+  const dateLine = date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  return { weekday, dateLine }
+}
+
+export function getFirstName(fullName) {
+  if (!fullName) return ''
+  return fullName.trim().split(/\s+/)[0] || fullName
+}
+
 export function nowTime() {
   const d = new Date()
   return d.toTimeString().slice(0, 5)

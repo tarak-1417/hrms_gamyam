@@ -43,7 +43,7 @@ export default function FilterBar({
 }) {
   return (
     <div
-      className={`flex w-full flex-wrap items-center gap-2 rounded-lg border border-border/80 bg-surface/60 px-2.5 py-1.5 sm:gap-2.5 lg:w-auto lg:min-w-[18rem] ${className}`}
+      className={`flex w-full flex-wrap items-center gap-2 rounded-lg border border-border/80 bg-surface/60 px-2.5 py-1.5 sm:gap-2.5 lg:min-w-[18rem] ${className}`}
     >
       <SlidersHorizontal className="hidden h-3.5 w-3.5 shrink-0 text-muted sm:block" aria-hidden />
       <div className="flex flex-1 flex-wrap items-center gap-2">{children}</div>

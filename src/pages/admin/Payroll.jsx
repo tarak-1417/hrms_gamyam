@@ -4,6 +4,7 @@ import Card from '../../components/ui/Card'
 import FilterBar, { FilterSelect } from '../../components/ui/FilterBar'
 import EmployeeDetailModal from '../../components/hr/EmployeeDetailModal'
 import { useHrms } from '../../hooks/useHrms'
+import { normalizePayrollRecord } from '../../store/hrmsHelpers'
 import { formatINR } from '../../utils/currency'
 
 const NET_BANDS = [
@@ -40,8 +41,10 @@ export default function Payroll() {
   const payrollRows = useMemo(() => {
     return employees
       .map((emp) => {
-        const row =
-          payrollRecords.find((p) => p.employeeId === emp.id) || getEmployeeDetails(emp.id)?.payroll
+        const row = normalizePayrollRecord(
+          payrollRecords.find((p) => p.employeeId === emp.id) || getEmployeeDetails(emp.id)?.payroll,
+          emp,
+        )
         if (!row) return null
         return { emp, row }
       })
@@ -94,12 +97,12 @@ export default function Payroll() {
     <div className="space-y-6">
       <div>
         <h1 className="page-title">Payroll</h1>
-        <p className="page-subtitle">April 2026 payroll summary</p>
+        <p className="page-subtitle">April 2026 salary breakup with earnings, deductions, and net pay</p>
       </div>
 
       <Card
         title="Payroll — April 2026"
-        subtitle="Click View for full employee profile and amounts"
+        subtitle="Click View for the full salary breakup and employee profile"
         toolbar={
           <FilterBar
             showing={filteredRows.length}
@@ -142,8 +145,8 @@ export default function Payroll() {
                   <th className="pb-3 font-medium">Employee</th>
                   <th className="pb-3 font-medium">Department</th>
                   <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium">Basic</th>
-                  <th className="pb-3 font-medium">Allowances</th>
+                  <th className="pb-3 font-medium">Annual CTC</th>
+                  <th className="pb-3 font-medium">Gross</th>
                   <th className="pb-3 font-medium">Deductions</th>
                   <th className="pb-3 font-medium">Net Pay</th>
                   <th className="pb-3 font-medium" />
@@ -155,8 +158,8 @@ export default function Payroll() {
                     <td className="py-4 font-medium text-foreground">{emp.name}</td>
                     <td className="py-4 text-muted">{emp.department}</td>
                     <td className="py-4 capitalize text-muted">{emp.status?.replace('-', ' ')}</td>
-                    <td className="py-4">{formatINR(row.basic)}</td>
-                    <td className="py-4 text-primary">{formatINR(row.allowances)}</td>
+                    <td className="py-4">{formatINR(row.yearlyCtc)}</td>
+                    <td className="py-4 text-primary">{formatINR(row.grossSalary)}</td>
                     <td className="py-4 text-red-600">{formatINR(row.deductions)}</td>
                     <td className="py-4 font-semibold">{formatINR(row.net)}</td>
                     <td className="py-4 text-right">

@@ -6,6 +6,15 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(() => ({
   plugins: [react(), tailwindcss()],
   base: '/',
+  server: {
+    // Listen on all interfaces so phones/other PCs on the same Wi‑Fi can connect
+    host: true,
+    port: 5173,
+  },
+  preview: {
+    host: true,
+    port: 4173,
+  },
   build: {
     rollupOptions: {
       output: {

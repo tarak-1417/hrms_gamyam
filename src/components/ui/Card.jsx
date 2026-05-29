@@ -9,7 +9,7 @@ export default function Card({ title, subtitle, action, toolbar, children, class
               {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
             </div>
             {(toolbar || action) && (
-              <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 lg:w-auto">
+              <div className="flex w-full min-w-0 shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 lg:min-w-0 lg:flex-1 lg:justify-end">
                 {toolbar}
                 {action}
               </div>

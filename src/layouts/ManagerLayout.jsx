@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  Users,
   CalendarOff,
   GitBranch,
   ClipboardList,

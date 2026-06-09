@@ -57,12 +57,6 @@ function emptyForm(userName) {
   }
 }
 
-function getDocumentSummary(documents = []) {
-  if (documents.length === 0) return 'No documents attached'
-  if (documents.length === 1) return `1 document attached`
-  return `${documents.length} documents attached`
-}
-
 export default function Reimbursements() {
   const { user } = useAuth()
   const { reimbursementRequests = [], submitReimbursement, updateReimbursementStatus } = useHrms()

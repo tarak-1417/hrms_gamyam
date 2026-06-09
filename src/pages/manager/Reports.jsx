@@ -2,7 +2,6 @@ import ChartCard from '../../components/charts/ChartCard'
 import AttendanceTrendChart from '../../components/charts/AttendanceTrendChart'
 import DepartmentChart from '../../components/charts/DepartmentChart'
 import LeaveDistributionChart from '../../components/charts/LeaveDistributionChart'
-import HiringPipelineChart from '../../components/charts/HiringPipelineChart'
 
 export default function ManagerReports() {
   return (

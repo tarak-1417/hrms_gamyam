@@ -285,7 +285,6 @@ export default function HrLeave() {
     leavePolicy,
   ])
   const reviewedValidation = reviewedLeave ? requestValidationById[reviewedLeave.id] : null
-  const earnedLeavePolicy = useMemo(() => getEarnedLeavePolicy(leavePolicy), [leavePolicy])
   const earnedLeavePolicyFacts = useMemo(() => getEarnedLeavePolicyFacts(leavePolicy), [leavePolicy])
 
   useEffect(() => {
@@ -315,19 +314,6 @@ export default function HrLeave() {
       earnedMaxUsagePerPeriodDays: earnedPolicy.maxUsagePerPeriodDays,
     })
   }, [leavePolicy, employeeStats, companyPlan])
-
-  const openEditLeave = (leave) => {
-    setEditLeaveId(leave.id)
-    setLeaveForm({
-      type: leave.type,
-      durationType: leave.durationType || 'full',
-      halfDayPeriod: leave.halfDayPeriod || 'first_half',
-      from: leave.from,
-      to: leave.to,
-      reason: leave.reason || '',
-      status: leave.status || 'pending',
-    })
-  }
 
   const openReviewLeave = (leave) => {
     setReviewLeaveId(leave.id)

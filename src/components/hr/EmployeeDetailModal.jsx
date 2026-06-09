@@ -6,7 +6,6 @@ import {
   Building2,
   Briefcase,
   Calendar,
-  Wallet,
   Hash,
   GitBranch,
   Users,

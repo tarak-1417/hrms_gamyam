@@ -1,7 +1,4 @@
 import { CalendarDays } from 'lucide-react'
-import { buildLeaveBalanceCardItems } from '../../utils/leaveBalance'
-
-export { buildLeaveBalanceCardItems }
 
 export default function LeaveBalanceCard({
   shortLabel,

@@ -10,8 +10,6 @@ export default function HrLayout({
   navSections,
   portalLabel,
   profilePath,
-  showHelpAndSettings = true,
-  showSettings = true,
   toolbarHomePath,
   searchVariant = 'hr',
   searchPlaceholder = 'Search employees, leave, pages…',

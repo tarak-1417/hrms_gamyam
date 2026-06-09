@@ -23,7 +23,7 @@ function toIso(date) {
   return `${y}-${m}-${d}`
 }
 
-export function formatDateDisplay(iso) {
+function formatDateDisplay(iso) {
   const d = parseIso(iso)
   if (!d) return ''
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })

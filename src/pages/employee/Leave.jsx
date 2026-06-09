@@ -22,7 +22,6 @@ import {
 } from '../../utils/holidayTypes'
 import {
   calculateLeaveDays,
-  formatDisplayDate,
   formatLeaveDateRange,
   formatLeaveDuration,
   HALF_DAY_PERIODS,

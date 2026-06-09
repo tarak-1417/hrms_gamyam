@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Mail, Lock, Users, Calendar, Wallet } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, Users, Calendar } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import BrandLogo from '../../components/BrandLogo'
 import { getUsers } from '../../data/dataService'

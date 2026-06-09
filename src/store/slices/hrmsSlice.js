@@ -54,7 +54,7 @@ const hrmsSlice = createSlice({
   name: 'hrms',
   initialState: getInitialHrmsState(),
   reducers: {
-    resetHrms(state) {
+    resetHrms() {
       return getInitialHrmsState()
     },
     addActivity(state, action) {

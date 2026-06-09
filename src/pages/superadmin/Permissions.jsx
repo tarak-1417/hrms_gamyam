@@ -1,13 +1,11 @@
-import { Check } from 'lucide-react'
 import Card from '../../components/ui/Card'
-import {
-  SUPER_ADMIN_RESPONSIBILITIES,
-  SUPER_ADMIN_PERMISSION_GROUPS,
-} from '../../config/superAdminPermissions'
+import { SUPER_ADMIN_PERMISSION_GROUPS } from '../../config/superAdminPermissions'
+import PlatformUsers from './PlatformUsers'
 
 export default function Permissions() {
   return (
     <div className="space-y-6">
+       <PlatformUsers />
       <div>
         <h1 className="page-title">Super Admin permissions</h1>
         <p className="page-subtitle">
@@ -15,7 +13,7 @@ export default function Permissions() {
         </p>
       </div>
 
-      <Card title="Platform responsibilities">
+      {/* <Card title="Platform responsibilities">
         <ul className="grid gap-2 sm:grid-cols-2">
           {SUPER_ADMIN_RESPONSIBILITIES.map((item) => (
             <li key={item} className="flex items-start gap-2 text-sm text-foreground">
@@ -24,7 +22,8 @@ export default function Permissions() {
             </li>
           ))}
         </ul>
-      </Card>
+      </Card> */}
+     
 
       <div className="grid gap-6 lg:grid-cols-3">
         {SUPER_ADMIN_PERMISSION_GROUPS.map((group) => (
@@ -44,6 +43,7 @@ export default function Permissions() {
           </Card>
         ))}
       </div>
+      
     </div>
   )
 }

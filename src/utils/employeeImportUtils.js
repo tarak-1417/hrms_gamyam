@@ -325,7 +325,7 @@ function todayIso() {
 }
 
 function readWorkbookRows(file, data) {
-  let rows = []
+  let rows
   if (file.name.endsWith('.csv') || file.type === 'text/csv') {
     const text = typeof data === 'string' ? data : new TextDecoder().decode(data)
     const wb = XLSX.read(text, { type: 'string' })

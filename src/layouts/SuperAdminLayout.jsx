@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   Building2,
-  Shield,
   FileStack,
   Network,
   GitBranch,
@@ -17,14 +16,14 @@ const platformNav = [
   { to: '/superadmin/reporting', icon: GitBranch, label: 'Reporting tree' },
   { to: '/superadmin/companies', icon: Building2, label: 'Organizations' },
   { to: '/superadmin/users', icon: UserCog, label: 'Users & access' },
-  { to: '/superadmin/permissions', icon: Shield, label: 'Permissions' },
+  // { to: '/superadmin/permissions', icon: Shield, label: 'Permissions' },
   { to: '/superadmin/documents', icon: FileStack, label: 'Documents' },
 ]
 
 const hrModuleNav = [
   { to: '/superadmin/hr', icon: LayoutDashboard, label: 'HR dashboard' },
   { to: '/superadmin/hr/employees', icon: Users, label: 'Employees' },
-  { to: '/superadmin/hr/reporting', icon: GitBranch, label: 'Reporting tree' },
+  // { to: '/superadmin/hr/reporting', icon: GitBranch, label: 'Reporting tree' },
   { to: '/superadmin/hr/leave', icon: CalendarOff, label: 'Leave' },
 ]
 

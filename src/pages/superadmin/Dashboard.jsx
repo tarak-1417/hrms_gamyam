@@ -3,7 +3,6 @@ import {
   Building2,
   Users,
   Network,
-  UserCog,
   Shield,
   ArchiveRestore,
 } from 'lucide-react'
@@ -16,8 +15,8 @@ import { usePlatform } from '../../hooks/usePlatform'
 import { SUPER_ADMIN_RESPONSIBILITIES } from '../../config/superAdminPermissions'
 
 const quickLinks = [
-  { to: '/superadmin/companies', icon: Building2, label: 'Organizations', desc: 'Create & manage tenants' },
-  { to: '/superadmin/users', icon: UserCog, label: 'Users & access', desc: 'HR admins, roles, passwords' },
+  // { to: '/superadmin/companies', icon: Building2, label: 'Organizations', desc: 'Create & manage tenants' },
+  // { to: '/superadmin/users', icon: UserCog, label: 'Users & access', desc: 'HR admins, roles, passwords' },
   { to: '/superadmin/organization', icon: Network, label: 'Org setup', desc: 'Departments, branches, reporting' },
   { to: '/superadmin/permissions', icon: Shield, label: 'Permissions', desc: 'Super Admin capabilities' },
   { to: '/superadmin/trash', icon: ArchiveRestore, label: 'Recycle bin', desc: 'Restore deleted records' },

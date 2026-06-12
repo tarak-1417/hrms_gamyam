@@ -130,7 +130,7 @@ function formatBalancePreview(days, balanceKey) {
   return `${value} ${value === 1 ? 'day' : 'days'}`
 }
 
-export default function HrLeave() {
+export default function HrLeave({ embedded = false }) {
   const {
     employees = [],
     departments = [],
@@ -432,14 +432,16 @@ export default function HrLeave() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="page-title">Leave Approval</h1>
-        <p className="mt-1 text-muted">
-          {canManage
-            ? 'Review requests, correct leave dates, and manage company leave policy'
-            : 'Review team leave requests and verify available balance before approval'}
-        </p>
-      </div>
+      {!embedded && (
+        <div>
+          <h1 className="page-title">Leave Approval</h1>
+          <p className="mt-1 text-muted">
+            {canManage
+              ? 'Review requests, correct leave dates, and manage company leave policy'
+              : 'Review team leave requests and verify available balance before approval'}
+          </p>
+        </div>
+      )}
 
       {canManage && (
         <div className="flex flex-wrap gap-2 border-b border-border pb-1">
@@ -922,7 +924,7 @@ export default function HrLeave() {
                 className="flex flex-col gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:border-primary/20 hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-neutral-950 text-white">
+                  <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white">
                     <span className="text-lg font-bold leading-none">{formatHolidayDateTile(holiday.date).day}</span>
                     <span className="mt-1 text-[10px] font-semibold tracking-wide text-white/70">
                       {formatHolidayDateTile(holiday.date).month}

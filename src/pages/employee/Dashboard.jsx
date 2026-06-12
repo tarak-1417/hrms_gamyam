@@ -4,17 +4,15 @@ import {
   CalendarOff,
   FileText,
   ChevronRight,
-  Receipt,
+  FolderOpen,
   Clock,
   CalendarDays,
   ArrowUpRight,
   GitBranch,
-  TrendingUp,
 } from 'lucide-react'
 import { normalizePayrollRecord } from '../../store/hrmsHelpers'
-import LeaveBalanceCard from '../../components/employee/LeaveBalanceCard'
 import { buildLeaveBalanceCardItems } from '../../utils/leaveBalance'
-import Badge from '../../components/ui/Badge'
+import { buildEmployeePortalDocuments } from '../../utils/employeePortalDocuments'
 import { useAuth } from '../../hooks/useAuth'
 import { useHrms } from '../../hooks/useHrms'
 import { buildEmployeeLeaveSummary } from '../../utils/leaveBalance'
@@ -28,6 +26,33 @@ import {
   todayDate,
 } from '../../utils/timeUtils'
 
+/* ---------- status pills (dark) ---------- */
+const STATUS_STYLES = {
+  approved: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/25',
+  active: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/25',
+  available: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/25',
+  pending: 'bg-amber-500/15 text-amber-300 border-amber-400/25',
+  rejected: 'bg-rose-500/15 text-rose-300 border-rose-400/25',
+}
+
+function statusPillClass(status) {
+  return STATUS_STYLES[status] || 'bg-slate-500/15 text-slate-300 border-slate-400/25'
+}
+
+function StatusPill({ status, label }) {
+  if (!status) return null
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize ${statusPillClass(
+        status,
+      )}`}
+    >
+      {label ?? status}
+    </span>
+  )
+}
+
+/* ---------- helpers ---------- */
 function getUpcomingHolidays(holidays = []) {
   const today = todayDate()
   return [...holidays]
@@ -67,93 +92,6 @@ function getDaysUntilHoliday(iso) {
   return `In ${diff} days`
 }
 
-const DASHBOARD_HOLIDAY_PREVIEW = 5
-
-function DashboardWelcome({ greeting, firstName, employee, role, department, manager = null }) {
-  const { weekday, dateLine } = formatWelcomeDateParts()
-  const employeeCode = employee?.id ?? '—'
-  const managerName = manager?.name ?? null
-
-  return (
-    <header className="dashboard-welcome-hero relative overflow-hidden rounded-3xl border border-primary/12 shadow-sm shadow-primary/5">
-      <div className="dashboard-welcome-dots pointer-events-none absolute inset-0 opacity-35" aria-hidden />
-      <div className="dashboard-welcome-shine pointer-events-none absolute inset-0" aria-hidden />
-
-      <div className="relative flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-8">
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary-dark">
-            {weekday} · {dateLine}
-          </p>
-
-          <h1 className="mt-4 text-2xl font-bold leading-tight text-foreground sm:text-3xl md:text-[2rem]">
-            {greeting},{' '}
-            <span className="text-primary">{firstName}</span>
-          </h1>
-
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-neutral-600 sm:text-base">
-            Here&apos;s what&apos;s happening with your HR profile today.
-            {managerName ? (
-              <>
-                {' '}
-                Your reporting manager is{' '}
-                <span className="font-semibold text-foreground">{managerName}</span>.
-              </>
-            ) : null}
-          </p>
-
-          {department ? (
-            <span className="mt-4 inline-flex rounded-full border border-primary/20 bg-white/90 px-3 py-1 text-xs font-semibold text-primary-dark">
-              {department}
-            </span>
-          ) : null}
-        </div>
-
-        {(role || managerName || employeeCode !== '—') && (
-          <div className="hidden shrink-0 items-stretch gap-6 sm:flex">
-            {role ? (
-              <div className="min-w-[7rem] border-r border-neutral-200/90 pr-6">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Role</p>
-                <p className="mt-1.5 text-sm font-semibold leading-snug text-foreground">{role}</p>
-              </div>
-            ) : null}
-            {managerName ? (
-              <div className="min-w-[7rem] border-r border-neutral-200/90 pr-6">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Manager</p>
-                <p className="mt-1.5 text-sm font-semibold leading-snug text-foreground">{managerName}</p>
-              </div>
-            ) : null}
-            <div className="min-w-[5.5rem]">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Employee ID</p>
-              <p className="mt-1.5 text-sm font-bold tracking-wide text-foreground">{employeeCode}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {(role || managerName || employeeCode !== '—') && (
-        <div className="relative flex flex-wrap gap-6 border-t border-neutral-200/80 bg-white/70 px-6 py-3.5 sm:hidden">
-          {role ? (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Role</p>
-              <p className="mt-0.5 text-sm font-semibold text-foreground">{role}</p>
-            </div>
-          ) : null}
-          {managerName ? (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Manager</p>
-              <p className="mt-0.5 text-sm font-semibold text-foreground">{managerName}</p>
-            </div>
-          ) : null}
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Employee ID</p>
-            <p className="mt-0.5 text-sm font-bold text-foreground">{employeeCode}</p>
-          </div>
-        </div>
-      )}
-    </header>
-  )
-}
-
 function formatPayslipTitle(month) {
   if (!month) return 'No payslip yet'
   const parsed = new Date(`${month} 01`)
@@ -167,122 +105,222 @@ function formatInr(amount) {
   return `₹${value.toLocaleString('en-IN')}`
 }
 
-function StatQuickCard({
-  to,
-  title,
-  value,
-  footer,
-  icon: Icon,
-  iconVariant = 'accent',
-  progressPercent,
-  footerTrend = false,
-}) {
+function activityStatusLabel(status) {
+  if (!status) return null
+  if (status === 'rejected') return 'Declined'
+  if (status === 'available') return 'Available'
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
+const DASHBOARD_HOLIDAY_PREVIEW = 5
+const DASHBOARD_ACTIVITY_TIMELINE = 5
+
+/* ---------- header ---------- */
+function WelcomeHero({ greeting, firstName, role, department, employeeCode, stats }) {
+  const { weekday, dateLine } = formatWelcomeDateParts()
+  return (
+    <header className="hrx-card hrx-rise relative overflow-hidden p-6 sm:p-8">
+      <span className="hrx-glow hrx-glow-indigo -left-10 -top-16 h-56 w-56 hrx-float" aria-hidden />
+      <span className="hrx-glow hrx-glow-violet right-10 -top-20 h-48 w-48" aria-hidden />
+      <span className="hrx-glow hrx-glow-cyan -bottom-24 right-1/3 h-52 w-52" aria-hidden />
+
+      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-indigo-300/80">
+            {weekday} · {dateLine}
+          </p>
+          <h1 className="mt-3 text-3xl font-bold leading-tight text-white sm:text-[2.4rem]">
+            {greeting},{' '}
+            <span className="bg-gradient-to-r from-indigo-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
+              {firstName}
+            </span>
+          </h1>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/60 sm:text-base">
+            Here&apos;s your personal workspace — track leave, payslips and documents at a glance.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center gap-2.5">
+            {role ? (
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/80">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_2px_rgba(16,185,129,0.7)]" />
+                {role}
+              </span>
+            ) : null}
+            {department ? (
+              <span className="inline-flex rounded-full border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70">
+                {department}
+              </span>
+            ) : null}
+            {employeeCode && employeeCode !== '—' ? (
+              <span className="inline-flex rounded-full border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-semibold tracking-wide text-white/70">
+                ID · {employeeCode}
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="grid shrink-0 grid-cols-3 gap-3 sm:gap-4">
+          {stats.map((s) => (
+            <div
+              key={s.label}
+              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-center backdrop-blur-sm"
+            >
+              <p className="text-2xl font-bold tracking-tight text-white sm:text-[1.6rem]">{s.value}</p>
+              <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-white/45">
+                {s.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </header>
+  )
+}
+
+/* ---------- KPI card ---------- */
+function KpiCard({ to, label, value, sub, icon: Icon, glow, iconTint, progressPercent }) {
   return (
     <Link
       to={to}
-      className="group flex min-h-[190px] flex-col rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-sm transition-all hover:border-primary/30 hover:shadow-md sm:min-h-[200px] sm:p-7"
+      className="hrx-card hrx-card-hover group relative flex h-full min-h-[210px] flex-col overflow-hidden p-5 sm:p-6"
     >
-      <div className="flex items-start justify-between gap-3">
-        {iconVariant === 'accent' ? (
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary sm:h-[3.25rem] sm:w-[3.25rem]">
-            <Icon className="h-6 w-6" strokeWidth={2} />
-          </span>
-        ) : (
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center sm:h-[3.25rem] sm:w-[3.25rem]">
-            <Icon className="h-7 w-7 text-foreground" strokeWidth={1.75} />
-          </span>
-        )}
-        <ArrowUpRight className="h-5 w-5 shrink-0 text-neutral-400 opacity-0 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary group-hover:opacity-100 sm:h-6 sm:w-6" />
+      <span className={`hrx-glow ${glow} -right-6 -top-8 h-28 w-28`} aria-hidden />
+      <div className="relative flex items-start justify-between gap-3">
+        <span className={`hrx-icon-tile h-12 w-12 ${iconTint}`}>
+          <Icon className="h-[1.35rem] w-[1.35rem]" strokeWidth={2.1} />
+        </span>
       </div>
+      <p className="relative mt-5 text-sm font-medium text-white/55">{label}</p>
+      <p className="relative mt-1 truncate text-[2rem] font-bold leading-none tracking-tight text-white">
+        {value}
+      </p>
 
-      <p className="mt-5 text-sm font-medium text-neutral-500 sm:text-base">{title}</p>
-      <p className="mt-1.5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{value}</p>
-
-      {progressPercent != null && (
-        <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-primary-light">
+      <div
+        className={`relative mt-4 h-2 overflow-hidden rounded-full ${
+          progressPercent != null ? 'bg-white/10' : ''
+        }`}
+        aria-hidden={progressPercent == null}
+      >
+        {progressPercent != null ? (
           <div
-            className="h-full rounded-full bg-gradient-to-r from-primary to-primary-dark transition-all duration-500"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
           />
-        </div>
-      )}
+        ) : null}
+      </div>
 
-      {footer ? (
-        <p className="mt-auto flex items-center gap-1.5 pt-5 text-xs text-neutral-500 sm:text-sm">
-          {footerTrend ? <TrendingUp className="h-4 w-4 text-primary" strokeWidth={2.5} /> : null}
-          <span>{footer}</span>
-        </p>
-      ) : null}
+      <p className="relative mt-auto flex items-center gap-1 pt-4 text-xs text-white/45">
+        {sub}
+        <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition group-hover:opacity-100" />
+      </p>
     </Link>
   )
 }
 
-function DashboardPanelHeading({ eyebrow, title, subtitle }) {
+/* ---------- panel wrapper ---------- */
+function Panel({ title, subtitle, action, className = '', glow, children }) {
   return (
-    <div>
-      <p className="dashboard-section-eyebrow text-[11px] uppercase">{eyebrow}</p>
-      <h3
-        className="mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
-      >
-        {title}
-      </h3>
-      {subtitle ? <p className="mt-1 text-sm text-neutral-600">{subtitle}</p> : null}
+    <section className={`hrx-card relative overflow-hidden p-5 sm:p-6 ${className}`}>
+      {glow ? <span className={`hrx-glow ${glow} -right-10 -top-12 h-36 w-36`} aria-hidden /> : null}
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold text-white">{title}</h3>
+          {subtitle ? <p className="mt-1 text-sm text-white/50">{subtitle}</p> : null}
+        </div>
+        {action}
+      </div>
+      <div className="relative mt-5">{children}</div>
+    </section>
+  )
+}
+
+function PanelLink({ to, children }) {
+  return (
+    <Link
+      to={to}
+      className="group inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-indigo-300 transition-colors hover:text-indigo-200"
+    >
+      {children}
+      <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+    </Link>
+  )
+}
+
+/* ---------- leave balance tile ---------- */
+function LeaveBalanceTile({ shortLabel, remaining, total, used, unit = 'days' }) {
+  const safeTotal = Math.max(0, Number(total) || 0)
+  const safeUsed = Math.max(0, Number(used) || 0)
+  const safeRemaining = Math.max(0, Number(remaining) || 0)
+  const usedForBar = safeTotal > 0 ? Math.min(safeUsed, safeTotal) : 0
+  const usedPct = safeTotal > 0 ? Math.min(100, Math.round((usedForBar / safeTotal) * 100)) : 0
+  const usedLabel =
+    unit === 'holidays'
+      ? safeUsed === 1
+        ? 'holiday used'
+        : 'holidays used'
+      : safeUsed === 1
+        ? 'day used'
+        : 'days used'
+
+  return (
+    <div className="flex min-h-[148px] flex-col rounded-2xl border border-white/8 bg-white/4 p-5">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">{shortLabel}</p>
+        <CalendarDays className="h-4 w-4 shrink-0 text-white/40" strokeWidth={1.75} aria-hidden />
+      </div>
+      <div className="mt-4 flex items-baseline gap-1.5">
+        <span className="text-[2rem] font-semibold leading-none tabular-nums text-white sm:text-[2.125rem]">
+          {safeRemaining}
+        </span>
+        <span className="text-lg font-normal tabular-nums text-white/40 sm:text-xl">/ {safeTotal}</span>
+      </div>
+      <p className="mt-2 text-sm text-white/50">
+        {safeUsed} {usedLabel}
+      </p>
+      <div className="mt-auto pt-4">
+        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 transition-[width] duration-500"
+            style={{ width: `${usedPct}%` }}
+          />
+        </div>
+      </div>
     </div>
   )
 }
 
-function DashboardTextLink({ to, children }) {
-  return (
-    <Link
-      to={to}
-      className="group inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-dark"
-    >
-      {children}
-      <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-    </Link>
-  )
-}
-
+/* ---------- holidays ---------- */
 function UpcomingHolidayHero({ holiday }) {
   const tile = formatHolidayDateTile(holiday.date)
   const typeMeta = getHolidayTypeMeta(holiday.type)
   const countdown = getDaysUntilHoliday(holiday.date)
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary-light/60 via-white to-white p-6 sm:p-8">
-      <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
-      <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-6">
+      <span className="hrx-glow hrx-glow-cyan -right-8 -top-10 h-32 w-32" aria-hidden />
+      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-5">
-          <div
-            className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl bg-white text-primary shadow-sm ring-1 ring-primary/10"
-          >
+          <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-white">
             <span className="text-3xl font-semibold leading-none">{tile.day}</span>
-            <span className="mt-1 text-xs font-semibold uppercase tracking-wide text-primary/80">
+            <span className="mt-1 text-xs font-semibold uppercase tracking-wide text-white/55">
               {tile.month}
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Next up</p>
-            <h3
-              className="mt-2 text-2xl font-semibold leading-tight text-foreground sm:text-3xl"
-            >
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300/80">Next up</p>
+            <h3 className="mt-2 text-2xl font-semibold leading-tight text-white sm:text-[1.7rem]">
               {holiday.name}
             </h3>
-            <p className="mt-2 text-sm text-neutral-600">{formatHolidaySubtitle(holiday.date)}</p>
-            <span
-              className={`mt-3 inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${typeMeta.chipClass}`}
-            >
+            <p className="mt-2 text-sm text-white/55">{formatHolidaySubtitle(holiday.date)}</p>
+            <span className="mt-3 inline-flex rounded-full border border-white/12 bg-white/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/65">
               {typeMeta.label}
             </span>
           </div>
         </div>
-        {countdown && (
-          <p
-            className="shrink-0 text-lg font-semibold text-primary sm:text-right sm:text-xl"
-          >
+        {countdown ? (
+          <p className="shrink-0 text-lg font-semibold text-cyan-300 sm:text-right sm:text-xl">
             {countdown}
           </p>
-        )}
+        ) : null}
       </div>
     </div>
   )
@@ -293,141 +331,98 @@ function UpcomingHolidayRow({ holiday }) {
   const typeMeta = getHolidayTypeMeta(holiday.type)
 
   return (
-    <li>
-      <div className="group flex items-center gap-4 rounded-2xl border border-transparent px-1 py-3 transition-colors hover:border-neutral-200/80 hover:bg-neutral-50/80 sm:gap-5 sm:px-3 sm:py-4">
-        <div
-          className="flex w-14 shrink-0 flex-col items-center text-center sm:w-16"
-        >
-          <span className="text-2xl font-semibold leading-none text-foreground">{tile.day}</span>
-          <span className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-neutral-600">
-            {tile.month}
-          </span>
-        </div>
-        <div className="min-w-0 flex-1 border-l border-neutral-100 pl-4 sm:pl-5">
-          <p className="truncate font-semibold text-foreground">{holiday.name}</p>
-          <p className="mt-0.5 truncate text-sm text-neutral-600">{tile.weekday}</p>
-        </div>
-        <span
-          className={`hidden shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] sm:inline-flex ${typeMeta.chipClass}`}
-        >
-          {typeMeta.label}
+    <li className="flex items-center gap-4 rounded-2xl px-1 py-3 transition-colors hover:bg-white/4 sm:gap-5 sm:px-3">
+      <div className="flex w-14 shrink-0 flex-col items-center text-center sm:w-16">
+        <span className="text-2xl font-semibold leading-none text-white">{tile.day}</span>
+        <span className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-white/45">
+          {tile.month}
         </span>
       </div>
+      <div className="min-w-0 flex-1 border-l border-white/8 pl-4 sm:pl-5">
+        <p className="truncate font-semibold text-white">{holiday.name}</p>
+        <p className="mt-0.5 truncate text-sm text-white/45">{tile.weekday}</p>
+      </div>
+      <span className="hidden shrink-0 rounded-full border border-white/12 bg-white/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/60 sm:inline-flex">
+        {typeMeta.label}
+      </span>
     </li>
   )
 }
 
-const DASHBOARD_ACTIVITY_TIMELINE = 5
-
-function activityStatusLabel(status) {
-  if (!status) return null
-  if (status === 'rejected') return 'Declined'
-  if (status === 'available') return 'Available'
-  return status.charAt(0).toUpperCase() + status.slice(1)
-}
-
-function RecentActivityTimelineCard({ item, isLatest = false }) {
-  const showStatus = Boolean(item.status)
-
-  const card = (
-    <div
-      className={`rounded-2xl px-4 py-3.5 transition-shadow ${
-        isLatest
-          ? 'border-2 border-primary/45 bg-primary-light/40 shadow-md shadow-primary/10 ring-1 ring-primary/15'
-          : item.status === 'pending'
-            ? 'border border-amber-200/90 bg-amber-50/50 shadow-sm hover:shadow-md'
-            : 'border border-neutral-200/90 bg-white shadow-sm hover:shadow-md'
-      }`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-foreground">{item.title}</p>
-        {isLatest ? (
-          <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-            Latest
-          </span>
-        ) : showStatus ? (
-          <Badge status={item.status}>{activityStatusLabel(item.status)}</Badge>
-        ) : null}
-      </div>
-      {item.description ? (
-        <p className="mt-1.5 text-xs font-medium leading-relaxed text-neutral-700">{item.description}</p>
-      ) : null}
-      <div className="mt-1.5 flex flex-wrap items-center gap-2">
-        <p className="text-[11px] text-neutral-500">{item.time}</p>
-        {isLatest && showStatus ? (
-          <Badge status={item.status}>{activityStatusLabel(item.status)}</Badge>
-        ) : null}
-      </div>
-    </div>
-  )
-
-  if (item.link) {
-    return (
-      <Link to={item.link} className="block">
-        {card}
-      </Link>
-    )
-  }
-
-  return card
-}
-
+/* ---------- recent activity ---------- */
 function RecentActivityTimeline({ items }) {
   const timelineItems = items.slice(0, DASHBOARD_ACTIVITY_TIMELINE)
 
   return (
-    <div className="relative mx-1 py-2">
-      <div
-        className="pointer-events-none absolute bottom-6 left-1/2 top-6 w-px -translate-x-1/2 bg-neutral-200"
-        aria-hidden
-      />
+    <ol className="relative space-y-4 before:absolute before:bottom-2 before:left-[7px] before:top-2 before:w-px before:bg-white/10">
+      {timelineItems.map((item, index) => {
+        const isLatest = index === 0
+        const showStatus = Boolean(item.status)
+        const node = (
+          <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-3 transition-colors hover:border-white/15 hover:bg-white/6">
+            <div className="flex items-start justify-between gap-2">
+              <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-white">{item.title}</p>
+              {isLatest ? (
+                <span className="shrink-0 rounded-full border border-indigo-400/30 bg-indigo-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-200">
+                  Latest
+                </span>
+              ) : showStatus ? (
+                <StatusPill status={item.status} label={activityStatusLabel(item.status)} />
+              ) : null}
+            </div>
+            {item.description ? (
+              <p className="mt-1.5 text-xs leading-relaxed text-white/55">{item.description}</p>
+            ) : null}
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              <p className="text-[11px] text-white/40">{item.time}</p>
+              {isLatest && showStatus ? (
+                <StatusPill status={item.status} label={activityStatusLabel(item.status)} />
+              ) : null}
+            </div>
+          </div>
+        )
 
-      <ol className="space-y-7">
-        {timelineItems.map((item, index) => {
-          const onRight = index % 2 === 0
-          const isLatest = index === 0
-          const isPending = item.status === 'pending'
-
-          return (
-            <li key={item.id} className="relative min-h-[4.5rem]">
-              <span
-                className={`absolute left-1/2 top-5 z-10 -translate-x-1/2 rounded-full border-2 ${
-                  isLatest
-                    ? 'h-4 w-4 border-primary bg-primary shadow-[0_0_0_4px_rgba(245,130,32,0.2)]'
-                    : isPending
-                      ? 'h-3.5 w-3.5 border-amber-400 bg-amber-100'
-                      : 'h-3.5 w-3.5 border-neutral-300 bg-white'
-                }`}
-                aria-hidden
-              />
-              <div
-                className={`absolute top-0 w-[calc(50%-1.25rem)] max-w-[260px] ${
-                  onRight ? 'right-0 text-left' : 'left-0 text-left'
-                }`}
-              >
-                <RecentActivityTimelineCard item={item} isLatest={isLatest} />
-              </div>
-            </li>
-          )
-        })}
-      </ol>
-    </div>
+        return (
+          <li key={item.id} className="relative pl-7">
+            <span
+              className={`absolute left-0 top-3.5 z-10 rounded-full border-2 ${
+                isLatest
+                  ? 'h-4 w-4 border-indigo-400 bg-indigo-400 shadow-[0_0_0_4px_rgba(79,70,229,0.25)]'
+                  : item.status === 'pending'
+                    ? 'h-3.5 w-3.5 border-amber-400 bg-amber-500/30'
+                    : 'h-3.5 w-3.5 border-white/30 bg-white/10'
+              }`}
+              aria-hidden
+            />
+            {item.link ? (
+              <Link to={item.link} className="block">
+                {node}
+              </Link>
+            ) : (
+              node
+            )}
+          </li>
+        )
+      })}
+    </ol>
   )
 }
 
+/* ============================ page ============================ */
 export default function EmployeeDashboard() {
   const { user } = useAuth()
   const {
     employees = [],
     holidays = [],
     leaveRequests,
-    reimbursementRequests = [],
     payrollRecords = [],
     activityFeed = [],
     employeeStats,
     leaveBalancesByEmployee = {},
     optionalHolidayClaims = [],
     leavePolicy = {},
+    employeeDocuments = [],
+    generatedDocuments = [],
     getEmployeeById,
     getEmployeeDetails,
   } = useHrms()
@@ -467,26 +462,20 @@ export default function EmployeeDashboard() {
     leavePolicy,
   })
   const balance = leaveSummary.remaining
-  const leaveBalanceCards = useMemo(
-    () => buildLeaveBalanceCardItems(leaveSummary),
-    [leaveSummary],
-  )
+  const leaveBalanceCards = useMemo(() => buildLeaveBalanceCardItems(leaveSummary), [leaveSummary])
   const totalLeave = balance.casual + balance.sick + balance.earned
   const recentLeaves = [...myLeaves].slice(0, 4)
   const displayName = currentEmployee?.name || user?.name || 'there'
   const firstName = getFirstName(displayName)
 
-  const myReimbursements = useMemo(
-    () => reimbursementRequests.filter((request) => request.employeeId === resolvedEmployeeId),
-    [reimbursementRequests, resolvedEmployeeId],
-  )
-  const pendingReimbursements = myReimbursements.filter((request) => request.status === 'pending').length
-  const pendingReimbursementTotal = useMemo(
+  const myDocuments = useMemo(
     () =>
-      myReimbursements
-        .filter((request) => request.status === 'pending')
-        .reduce((sum, request) => sum + (Number(request.amount) || 0), 0),
-    [myReimbursements],
+      buildEmployeePortalDocuments({
+        employeeId: resolvedEmployeeId,
+        employeeDocuments,
+        generatedDocuments,
+      }),
+    [resolvedEmployeeId, employeeDocuments, generatedDocuments],
   )
   const leaveProgressPercent = useMemo(() => {
     const annualPool = 45
@@ -507,7 +496,7 @@ export default function EmployeeDashboard() {
       buildEmployeeRecentActivities({
         employeeId: resolvedEmployeeId,
         leaveRequests,
-        reimbursementRequests,
+        reimbursementRequests: [],
         payrollRecords: payrollRecords
           .filter((record) => record.employeeId === resolvedEmployeeId)
           .map((record) => normalizePayrollRecord(record, currentEmployee))
@@ -515,14 +504,7 @@ export default function EmployeeDashboard() {
         activityFeed,
         limit: 8,
       }),
-    [
-      resolvedEmployeeId,
-      leaveRequests,
-      reimbursementRequests,
-      payrollRecords,
-      activityFeed,
-      currentEmployee,
-    ],
+    [resolvedEmployeeId, leaveRequests, payrollRecords, activityFeed, currentEmployee],
   )
 
   const manager = useMemo(() => {
@@ -530,270 +512,213 @@ export default function EmployeeDashboard() {
     return getEmployeeDetails(resolvedEmployeeId)?.manager ?? null
   }, [resolvedEmployeeId, getEmployeeDetails, currentEmployee?.managerId])
 
-  const statCards = useMemo(
-    () => [
-      {
-        to: '/employee/leave',
-        icon: CalendarOff,
-        title: 'Leave balance',
-        value: `${totalLeave} day${totalLeave === 1 ? '' : 's'}`,
-        footer: 'Apply or check balance',
-        iconVariant: 'accent',
-        progressPercent: leaveProgressPercent,
-        footerTrend: false,
-      },
-      {
-        to: '/employee/reimbursements',
-        icon: Receipt,
-        title: 'Pending claims',
-        value: pendingReimbursementTotal > 0 ? formatInr(pendingReimbursementTotal) : '₹0',
-        footer:
-          pendingReimbursements > 0
-            ? `${pendingReimbursements} active request${pendingReimbursements === 1 ? '' : 's'}`
-            : 'No claims in review',
-        iconVariant: 'outline',
-      },
-      {
-        to: '/employee/payslips',
-        icon: FileText,
-        title: 'Latest payslip',
-        value: latestPayslip ? formatPayslipTitle(latestPayslip.month) : '—',
-        footer: latestPayslip?.net
-          ? `Net pay: ${formatInr(latestPayslip.net)}`
-          : 'Download or share',
-        iconVariant: 'accent',
-      },
-      {
-        to: '/employee/reporting',
-        icon: GitBranch,
-        title: 'Reporting manager',
-        value: manager?.name ?? 'Not assigned',
-        footer: manager ? `${manager.role} · View org chart` : 'Set up in My Reporting',
-        iconVariant: 'outline',
-      },
-    ],
-    [
-      totalLeave,
-      leaveProgressPercent,
-      pendingReimbursements,
-      pendingReimbursementTotal,
-      latestPayslip,
-      manager,
-    ],
-  )
+  const heroStats = [
+    { label: 'Leave days', value: totalLeave },
+    { label: 'Documents', value: myDocuments.length },
+    { label: 'Holidays ahead', value: upcomingHolidays.length },
+  ]
+
+  const kpis = [
+    {
+      to: '/employee/leave',
+      icon: CalendarOff,
+      label: 'Leave balance',
+      value: `${totalLeave} day${totalLeave === 1 ? '' : 's'}`,
+      sub: 'Apply or check balance',
+      glow: 'hrx-glow-indigo',
+      iconTint: 'text-indigo-300',
+      progressPercent: leaveProgressPercent,
+    },
+    {
+      to: '/employee/payslips',
+      icon: FileText,
+      label: 'Latest payslip',
+      value: latestPayslip ? formatPayslipTitle(latestPayslip.month) : '—',
+      sub: latestPayslip?.net ? `Net pay: ${formatInr(latestPayslip.net)}` : 'Download or share',
+      glow: 'hrx-glow-emerald',
+      iconTint: 'text-emerald-300',
+    },
+    {
+      to: '/employee/documents',
+      icon: FolderOpen,
+      label: 'Documents',
+      value: `${myDocuments.length} file${myDocuments.length === 1 ? '' : 's'}`,
+      sub: 'Letters, contracts & more',
+      glow: 'hrx-glow-amber',
+      iconTint: 'text-amber-300',
+    },
+    {
+      to: '/employee/reporting',
+      icon: GitBranch,
+      label: 'Reporting manager',
+      value: manager?.name ?? 'Not assigned',
+      sub: manager ? `${manager.role} · View org chart` : 'Set up in My Reporting',
+      glow: 'hrx-glow-violet',
+      iconTint: 'text-violet-300',
+    },
+  ]
 
   return (
-    <div className="space-y-12 pb-8">
-      <DashboardWelcome
+    <div className="mx-auto max-w-[1400px] space-y-6 pb-10">
+      <WelcomeHero
         greeting={getTimeGreeting()}
         firstName={firstName}
-        employee={currentEmployee}
         role={currentEmployee?.role}
         department={currentEmployee?.department}
-        manager={manager}
+        employeeCode={currentEmployee?.id ?? '—'}
+        stats={heroStats}
       />
 
-      <section className="pt-2">
-        <p className="dashboard-section-eyebrow text-[11px] uppercase">Quick access</p>
-        <h2
-          className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+      {/* KPI row */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((k, i) => (
+          <div key={k.label} className="hrx-rise" style={{ animationDelay: `${i * 60}ms` }}>
+            <KpiCard {...k} />
+          </div>
+        ))}
+      </div>
+
+      {/* Leave balance + my requests */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <Panel
+          title="Leave balance"
+          subtitle="Days remaining by type"
+          glow="hrx-glow-indigo"
+          className="lg:col-span-3"
+          action={<PanelLink to="/employee/leave">Apply leave</PanelLink>}
         >
-          Everything in one tap
-        </h2>
-        
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
-          {statCards.map((card) => (
-            <StatQuickCard
-              key={card.title}
-              to={card.to}
-              title={card.title}
-              value={card.value}
-              footer={card.footer}
-              icon={card.icon}
-              iconVariant={card.iconVariant}
-              progressPercent={card.progressPercent}
-              footerTrend={card.footerTrend}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="pt-2">
-        <p className="dashboard-section-eyebrow text-[11px] uppercase">Time off</p>
-        <h2
-          className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
-        >
-          Leave & requests
-        </h2>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-5 lg:gap-8">
-          <section className="rounded-3xl border border-neutral-200/80 bg-white p-6 shadow-sm sm:p-7 lg:col-span-3">
-            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-              <DashboardPanelHeading
-                eyebrow="Available"
-                title="Leave balance"
-                subtitle="Days remaining by type"
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {leaveBalanceCards.map((card) => (
+              <LeaveBalanceTile
+                key={card.key}
+                shortLabel={card.shortLabel}
+                remaining={card.remaining}
+                total={card.total}
+                used={card.used}
+                unit={card.unit}
               />
-              <DashboardTextLink to="/employee/leave">Apply leave</DashboardTextLink>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {leaveBalanceCards.map((card) => (
-                <LeaveBalanceCard
-                  key={card.key}
-                  shortLabel={card.shortLabel}
-                  remaining={card.remaining}
-                  total={card.total}
-                  used={card.used}
-                  unit={card.unit}
-                />
-              ))}
-            </div>
-          </section>
+            ))}
+          </div>
+        </Panel>
 
-          <section className="rounded-3xl border border-neutral-200/80 bg-white p-6 shadow-sm sm:p-7 lg:col-span-2">
-            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-              <DashboardPanelHeading eyebrow="Activity" title="My requests" subtitle="Recent leave history" />
-              {myLeaves.length > 0 && <DashboardTextLink to="/employee/leave">View all</DashboardTextLink>}
-            </div>
-
-            {recentLeaves.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-neutral-200 bg-neutral-50/60 px-6 py-12 text-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-light text-primary">
-                  <CalendarOff className="h-6 w-6" />
-                </span>
-                <p
-                  className="mt-4 text-lg font-semibold text-foreground"
-                >
-                  No requests yet
-                </p>
-                <p className="mt-1 max-w-[220px] text-sm text-neutral-600">Apply for leave when you need time off.</p>
-                <Link
-                  to="/employee/leave"
-                  className="mt-6 inline-flex items-center gap-1 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 hover:bg-primary-dark"
-                >
-                  Apply for leave
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              </div>
-            ) : (
-              <ul className="space-y-3">
-                {recentLeaves.map((leave) => (
-                  <li key={leave.id}>
-                    <Link
-                      to="/employee/leave"
-                      className="group flex items-center gap-4 rounded-3xl border border-neutral-200/80 bg-white p-4 shadow-sm transition-colors hover:border-primary/20 hover:bg-neutral-50/50 sm:p-5"
-                    >
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-light text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-                        <Clock className="h-5 w-5" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-foreground">{leave.type}</p>
-                        <p className="mt-0.5 text-xs leading-relaxed text-neutral-600">
-                          {formatLeaveDateRange(leave)}
-                        </p>
-                      </div>
-                      <Badge status={leave.status} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </div>
-      </section>
-
-      <section className="pt-2">
-        <p className="dashboard-section-eyebrow text-[11px] uppercase">Overview</p>
-        <h2
-          className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+        <Panel
+          title="My requests"
+          subtitle="Recent leave history"
+          glow="hrx-glow-violet"
+          className="lg:col-span-2"
+          action={myLeaves.length > 0 ? <PanelLink to="/employee/leave">View all</PanelLink> : null}
         >
-          Activity & calendar
-        </h2>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start lg:gap-8">
-          <section className="flex h-full flex-col rounded-3xl border border-neutral-200/80 bg-white p-6 shadow-sm sm:p-7">
-            <div className="mb-5 flex items-center justify-between gap-3 border-b border-neutral-100 pb-4">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100">
-                  <Clock className="h-5 w-5 text-neutral-600" />
-                </span>
-                <h3 className="text-lg font-bold tracking-tight text-foreground">Recent Activity</h3>
-              </div>
-              {recentActivities.length > 0 && (
-                <Link
-                  to="/employee/leave"
-                  className="shrink-0 text-sm font-semibold text-primary hover:text-primary-dark"
-                >
-                  View all
-                </Link>
-              )}
+          {recentLeaves.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/12 bg-white/4 px-6 py-10 text-center">
+              <span className="hrx-icon-tile h-12 w-12 text-indigo-300">
+                <CalendarOff className="h-6 w-6" />
+              </span>
+              <p className="mt-4 text-base font-semibold text-white">No requests yet</p>
+              <p className="mt-1 max-w-[220px] text-sm text-white/50">
+                Apply for leave when you need time off.
+              </p>
+              <Link
+                to="/employee/leave"
+                className="mt-5 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-semibold !text-white shadow-lg shadow-indigo-500/30 hover:from-indigo-400 hover:to-violet-400"
+              >
+                Apply for leave
+                <ChevronRight className="h-4 w-4" />
+              </Link>
             </div>
-
-            {recentActivities.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center rounded-3xl border border-dashed border-neutral-200 bg-neutral-50/60 px-6 py-12 text-center">
-                <Clock className="h-10 w-10 text-neutral-300" />
-                <p className="mt-3 text-sm font-medium text-foreground">No recent activity</p>
-                <p className="mt-1 text-sm text-neutral-600">Leave, reimbursements, and updates will show here.</p>
-              </div>
-            ) : (
-              <RecentActivityTimeline items={recentActivities} />
-            )}
-          </section>
-
-          <section className="flex h-full flex-col rounded-3xl border border-neutral-200/80 bg-white p-6 shadow-sm sm:p-7">
-            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-              <DashboardPanelHeading
-                eyebrow="Calendar"
-                title="Upcoming holidays"
-                subtitle={
-                  upcomingHolidays.length
-                    ? `${upcomingHolidays.length} on your calendar · showing next ${Math.min(DASHBOARD_HOLIDAY_PREVIEW, upcomingHolidays.length)}`
-                    : 'Company holiday calendar'
-                }
-              />
-              {upcomingHolidays.length > 0 && (
-                <DashboardTextLink to="/employee/leave">Full calendar</DashboardTextLink>
-              )}
-            </div>
-
-            {upcomingHolidays.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center rounded-3xl border border-dashed border-neutral-200 bg-neutral-50/60 px-6 py-12 text-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-light text-primary">
-                  <CalendarDays className="h-6 w-6" />
-                </span>
-                <p
-                  className="mt-4 text-lg font-semibold text-foreground"
-                >
-                  No upcoming holidays
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {nextHoliday && <UpcomingHolidayHero holiday={nextHoliday} />}
-
-                {followingHolidays.length > 0 && (
-                  <ul className="divide-y divide-neutral-100">
-                    {followingHolidays.map((holiday) => (
-                      <UpcomingHolidayRow key={holiday.id} holiday={holiday} />
-                    ))}
-                  </ul>
-                )}
-
-                {moreHolidayCount > 0 && (
+          ) : (
+            <ul className="space-y-3">
+              {recentLeaves.map((leave) => (
+                <li key={leave.id}>
                   <Link
                     to="/employee/leave"
-                    className="group flex items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/50 px-4 py-4 text-sm font-semibold text-primary transition-colors hover:border-primary/30 hover:bg-primary-light/30"
+                    className="group flex items-center gap-4 rounded-2xl border border-white/8 bg-white/4 p-4 transition-colors hover:border-white/15 hover:bg-white/6"
                   >
-                    View {moreHolidayCount} more holiday{moreHolidayCount === 1 ? '' : 's'}
-                    <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                    <span className="hrx-icon-tile h-11 w-11 text-indigo-300">
+                      <Clock className="h-5 w-5" strokeWidth={2} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-white">{leave.type}</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-white/45">
+                        {formatLeaveDateRange(leave)}
+                      </p>
+                    </div>
+                    <StatusPill status={leave.status} />
                   </Link>
-                )}
-              </div>
-            )}
-          </section>
-        </div>
-      </section>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
+
+      {/* Activity + holidays */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Panel
+          title="Recent activity"
+          subtitle="Leave, payslips and updates"
+          glow="hrx-glow-cyan"
+          className="h-full"
+          action={recentActivities.length > 0 ? <PanelLink to="/employee/leave">View all</PanelLink> : null}
+        >
+          {recentActivities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/12 bg-white/4 px-6 py-12 text-center">
+              <Clock className="h-10 w-10 text-white/25" />
+              <p className="mt-3 text-sm font-medium text-white">No recent activity</p>
+              <p className="mt-1 text-sm text-white/45">
+                Leave, reimbursements, and updates will show here.
+              </p>
+            </div>
+          ) : (
+            <RecentActivityTimeline items={recentActivities} />
+          )}
+        </Panel>
+
+        <Panel
+          title="Upcoming holidays"
+          subtitle={
+            upcomingHolidays.length
+              ? `${upcomingHolidays.length} on your calendar · showing next ${Math.min(
+                  DASHBOARD_HOLIDAY_PREVIEW,
+                  upcomingHolidays.length,
+                )}`
+              : 'Company holiday calendar'
+          }
+          glow="hrx-glow-violet"
+          className="h-full"
+          action={upcomingHolidays.length > 0 ? <PanelLink to="/employee/leave">Full calendar</PanelLink> : null}
+        >
+          {upcomingHolidays.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/12 bg-white/4 px-6 py-12 text-center">
+              <span className="hrx-icon-tile h-12 w-12 text-violet-300">
+                <CalendarDays className="h-6 w-6" />
+              </span>
+              <p className="mt-4 text-base font-semibold text-white">No upcoming holidays</p>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {nextHoliday ? <UpcomingHolidayHero holiday={nextHoliday} /> : null}
+
+              {followingHolidays.length > 0 ? (
+                <ul className="divide-y divide-white/8">
+                  {followingHolidays.map((holiday) => (
+                    <UpcomingHolidayRow key={holiday.id} holiday={holiday} />
+                  ))}
+                </ul>
+              ) : null}
+
+              {moreHolidayCount > 0 ? (
+                <Link
+                  to="/employee/leave"
+                  className="group flex items-center justify-center gap-2 rounded-2xl border border-dashed border-white/12 bg-white/4 px-4 py-3.5 text-sm font-semibold text-indigo-300 transition-colors hover:border-white/20 hover:bg-white/6"
+                >
+                  View {moreHolidayCount} more holiday{moreHolidayCount === 1 ? '' : 's'}
+                  <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </Link>
+              ) : null}
+            </div>
+          )}
+        </Panel>
+      </div>
     </div>
   )
 }

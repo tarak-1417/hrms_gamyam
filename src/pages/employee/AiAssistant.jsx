@@ -1,6 +1,14 @@
-import { Navigate } from 'react-router-dom'
+import AiChatPanel from '../../components/ai/AiChatPanel'
 
-/** AI is available via the floating robot on all employee pages */
+/**
+ * Employee home — a full-screen Gamyam AI workspace. The assistant answers
+ * from live HR data, opens any page, and performs actions like applying for
+ * leave (with a prefilled form confirmation step).
+ */
 export default function AiAssistant() {
-  return <Navigate to="/employee" replace />
+  return (
+    <div className="mx-auto flex h-[calc(100vh-9rem)] w-full max-w-[1400px] flex-col">
+      <AiChatPanel />
+    </div>
+  )
 }

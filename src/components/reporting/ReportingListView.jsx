@@ -55,8 +55,8 @@ export default function ReportingListView({
                   <span className="w-5 shrink-0" />
                 )}
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white ${
-                    selected ? 'bg-primary' : 'bg-neutral-700'
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                    selected ? 'bg-primary text-white' : 'bg-primary-light text-primary'
                   }`}
                 >
                   {emp.avatar || emp.name?.charAt(0)}

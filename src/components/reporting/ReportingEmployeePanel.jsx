@@ -136,7 +136,7 @@ export default function ReportingEmployeePanel({
                         onClick={() => onSelectEmployee?.(authority.id)}
                         className="flex w-full items-center gap-2 rounded-lg border border-neutral-100 px-3 py-2 text-left transition-colors hover:bg-primary-light/30"
                       >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-800 text-xs font-bold text-white">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-light text-xs font-bold text-primary">
                           {authority.avatar || authority.name?.charAt(0)}
                         </span>
                         <span className="min-w-0 flex-1">

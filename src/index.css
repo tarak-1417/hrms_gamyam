@@ -675,3 +675,495 @@ textarea:focus {
     animation: none !important;
   }
 }
+
+/* =====================================================================
+   HR Admin — dark glassmorphism theme
+   Everything is scoped under .hr-admin-dark so the employee / manager
+   portals keep their existing light styling untouched.
+   ===================================================================== */
+.hr-admin-dark {
+  --hrx-bg: #030712;
+  --hrx-indigo: #4f46e5;
+  --hrx-violet: #8b5cf6;
+  --hrx-emerald: #10b981;
+  --hrx-amber: #f59e0b;
+  --hrx-cyan: #06b6d4;
+  --hrx-text: #f8fafc;
+  --hrx-muted: #94a3b8;
+  --hrx-faint: #64748b;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  /* native selects, date inputs, scrollbars and their option popups
+     follow the dark color scheme */
+  color-scheme: dark;
+
+  /* Remap the app's semantic design tokens to the dark palette so every
+     admin sub-page (Employees, Leave, Reimbursements, …) inherits the same
+     look without touching their markup. Scoped here -> employee / manager
+     portals keep the original light tokens. */
+  --color-surface: #0b1120;
+  --color-surface-elevated: #0f1a30;
+  --color-border: rgba(148, 163, 184, 0.14);
+  --color-muted: #94a3b8;
+  --color-foreground: #f1f5f9;
+  --color-primary: #6366f1;
+  --color-primary-dark: #818cf8;
+  --color-primary-darker: #a5b4fc;
+  --color-primary-light: rgba(99, 102, 241, 0.16);
+  --color-primary-muted: rgba(99, 102, 241, 0.28);
+  --color-peach-cream: #0f1a30;
+  --color-peach-soft: #0f1a30;
+  --color-peach-warm: #111c34;
+}
+
+/* ---- Dark skin for raw light utilities used across the admin sub-pages.
+   `.hr-admin-dark .x` (0,2,0) outranks Tailwind's `.x` (0,1,0), so no
+   !important is needed. Only opaque / light surfaces are remapped — the
+   low-opacity white overlays (bg-white/5 … /25) used by the dark theme
+   itself are intentionally left alone. ---- */
+/* white surfaces (bare + high-opacity) -> dark card */
+.hr-admin-dark .bg-white { background-color: #0f1a30; }
+.hr-admin-dark .bg-white\/95,
+.hr-admin-dark .bg-white\/90,
+.hr-admin-dark .bg-white\/85,
+.hr-admin-dark .bg-white\/80,
+.hr-admin-dark .bg-white\/70 { background-color: rgba(148, 163, 184, 0.08); }
+
+/* neutral-50 fills (every opacity variant) -> faint slate */
+.hr-admin-dark .bg-neutral-50,
+.hr-admin-dark .bg-neutral-50\/95,
+.hr-admin-dark .bg-neutral-50\/80,
+.hr-admin-dark .bg-neutral-50\/70,
+.hr-admin-dark .bg-neutral-50\/60,
+.hr-admin-dark .bg-neutral-50\/50,
+.hr-admin-dark .bg-neutral-50\/40 { background-color: rgba(148, 163, 184, 0.06); }
+.hr-admin-dark .bg-neutral-100 { background-color: rgba(148, 163, 184, 0.1); }
+.hr-admin-dark .bg-neutral-200 { background-color: rgba(148, 163, 184, 0.14); }
+.hr-admin-dark .bg-neutral-300 { background-color: rgba(148, 163, 184, 0.22); }
+
+/* surface token opacity variants (baked from the light #fafafa) */
+.hr-admin-dark .bg-surface\/80,
+.hr-admin-dark .bg-surface\/60,
+.hr-admin-dark .bg-surface\/50 { background-color: rgba(11, 17, 32, 0.6); }
+
+/* hovers */
+.hr-admin-dark .hover\:bg-neutral-50:hover,
+.hr-admin-dark .hover\:bg-neutral-50\/80:hover,
+.hr-admin-dark .hover\:bg-neutral-50\/70:hover,
+.hr-admin-dark .hover\:bg-neutral-50\/60:hover,
+.hr-admin-dark .hover\:bg-neutral-50\/50:hover { background-color: rgba(148, 163, 184, 0.1); }
+.hr-admin-dark .hover\:bg-neutral-100:hover,
+.hr-admin-dark .hover\:bg-neutral-100\/80:hover,
+.hr-admin-dark .hover\:bg-neutral-200:hover { background-color: rgba(148, 163, 184, 0.16); }
+
+/* borders + dividers */
+.hr-admin-dark .border-neutral-100,
+.hr-admin-dark .border-neutral-200,
+.hr-admin-dark .border-neutral-200\/80,
+.hr-admin-dark .border-neutral-300 { border-color: rgba(148, 163, 184, 0.14); }
+.hr-admin-dark .divide-neutral-100 > :not([hidden]) ~ :not([hidden]),
+.hr-admin-dark .divide-neutral-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+/* neutral text */
+.hr-admin-dark .text-neutral-700 { color: #e2e8f0; }
+.hr-admin-dark .text-neutral-600 { color: #cbd5e1; }
+.hr-admin-dark .text-neutral-500 { color: #94a3b8; }
+.hr-admin-dark .text-neutral-400 { color: #64748b; }
+.hr-admin-dark .text-neutral-300 { color: #475569; }
+
+.hr-admin-dark .ring-neutral-200,
+.hr-admin-dark .ring-neutral-200\/80 { --tw-ring-color: rgba(148, 163, 184, 0.2); }
+
+/* ---- Coloured pastel tints (bg-emerald-50, bg-amber-50, bg-rose-50 …)
+   read as washed-out blocks on dark. Remap every light tint to a
+   translucent jewel-tone, lighten the dark text, soften the borders. ---- */
+.hr-admin-dark .bg-emerald-50,
+.hr-admin-dark .bg-emerald-50\/80,
+.hr-admin-dark .bg-green-50,
+.hr-admin-dark .bg-green-100 { background-color: rgba(16, 185, 129, 0.14); }
+.hr-admin-dark .bg-amber-50,
+.hr-admin-dark .bg-amber-50\/90,
+.hr-admin-dark .bg-amber-50\/80,
+.hr-admin-dark .bg-amber-50\/70,
+.hr-admin-dark .bg-amber-50\/40,
+.hr-admin-dark .bg-amber-100,
+.hr-admin-dark .bg-yellow-50,
+.hr-admin-dark .bg-orange-100 { background-color: rgba(245, 158, 11, 0.14); }
+.hr-admin-dark .bg-red-50,
+.hr-admin-dark .bg-red-50\/90,
+.hr-admin-dark .bg-red-50\/80,
+.hr-admin-dark .bg-red-100,
+.hr-admin-dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.14); }
+.hr-admin-dark .bg-blue-50\/80,
+.hr-admin-dark .bg-blue-50\/50,
+.hr-admin-dark .bg-sky-50 { background-color: rgba(56, 189, 248, 0.14); }
+.hr-admin-dark .bg-indigo-50,
+.hr-admin-dark .bg-violet-50 { background-color: rgba(139, 92, 246, 0.14); }
+.hr-admin-dark .bg-slate-50 { background-color: rgba(148, 163, 184, 0.08); }
+
+/* coloured borders -> translucent */
+.hr-admin-dark .border-emerald-200 { border-color: rgba(16, 185, 129, 0.3); }
+.hr-admin-dark .border-amber-200,
+.hr-admin-dark .border-amber-200\/90,
+.hr-admin-dark .border-amber-200\/80,
+.hr-admin-dark .border-orange-300 { border-color: rgba(245, 158, 11, 0.3); }
+.hr-admin-dark .border-red-200,
+.hr-admin-dark .border-red-200\/90,
+.hr-admin-dark .border-red-300 { border-color: rgba(244, 63, 94, 0.3); }
+.hr-admin-dark .border-blue-200\/80 { border-color: rgba(56, 189, 248, 0.3); }
+
+/* coloured dark text -> bright on dark */
+.hr-admin-dark .text-emerald-700,
+.hr-admin-dark .text-emerald-600,
+.hr-admin-dark .text-green-700 { color: #6ee7b7; }
+.hr-admin-dark .text-amber-900,
+.hr-admin-dark .text-amber-800,
+.hr-admin-dark .text-amber-700,
+.hr-admin-dark .text-orange-900 { color: #fcd34d; }
+.hr-admin-dark .text-red-900,
+.hr-admin-dark .text-red-800,
+.hr-admin-dark .text-red-700,
+.hr-admin-dark .text-red-600 { color: #fca5a5; }
+.hr-admin-dark .text-blue-900 { color: #93c5fd; }
+
+/* ---- Gradient stops: the light gradients used by modals / hero banners
+   resolve to white bands on a dark surface. Remap the light stops so those
+   gradients become a faint indigo glow fading into the dark panel. ---- */
+.hr-admin-dark .via-white { --tw-gradient-via: #111c34; }
+.hr-admin-dark .to-white,
+.hr-admin-dark .to-sky-50 { --tw-gradient-to: #111c34; }
+.hr-admin-dark .from-primary-light\/55,
+.hr-admin-dark .from-primary-light\/50,
+.hr-admin-dark .from-primary-light\/30,
+.hr-admin-dark .from-primary-light\/25 { --tw-gradient-from: rgba(99, 102, 241, 0.18); }
+.hr-admin-dark .from-neutral-50\/80 { --tw-gradient-from: rgba(148, 163, 184, 0.06); }
+
+/* ---- Glassmorphism for modals/dialogs. Targets the shared Modal panel by
+   its role so the dark, frosted treatment only applies inside the admin
+   shell (other portals keep their light modals). Placed after the bg-white
+   remap so it wins the cascade. ---- */
+.hr-admin-dark [role='dialog'] {
+  background: linear-gradient(165deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.9)) !important;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  box-shadow:
+    0 40px 90px -30px rgba(2, 6, 23, 0.95),
+    0 0 0 1px rgba(99, 102, 241, 0.06) inset;
+}
+
+/* Ambient layered background — deep navy base with soft neon nebulae.
+   Carries the light typography so it only applies to the dark canvas,
+   leaving any light sub-pages rendered in the same shell untouched. */
+.hrx-shell-bg {
+  color: var(--hrx-text);
+  background-color: var(--hrx-bg);
+  background-image:
+    radial-gradient(60rem 60rem at 12% -8%, rgba(79, 70, 229, 0.22), transparent 60%),
+    radial-gradient(48rem 48rem at 92% 4%, rgba(139, 92, 246, 0.18), transparent 58%),
+    radial-gradient(50rem 50rem at 78% 108%, rgba(6, 182, 212, 0.14), transparent 60%),
+    radial-gradient(40rem 40rem at 4% 92%, rgba(16, 185, 129, 0.12), transparent 60%),
+    linear-gradient(180deg, #030712 0%, #0b1120 48%, #0f172a 100%);
+}
+
+.hrx-sidebar-bg {
+  background-image:
+    radial-gradient(36rem 36rem at -10% 0%, rgba(79, 70, 229, 0.28), transparent 60%),
+    radial-gradient(30rem 30rem at 120% 100%, rgba(139, 92, 246, 0.2), transparent 62%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(3, 7, 18, 0.96) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.hrx-topbar-bg {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.55));
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+/* Frosted glass card */
+.hrx-card {
+  position: relative;
+  border-radius: 24px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 20px 45px -25px rgba(2, 6, 23, 0.9);
+}
+
+/* Floating glass surface for popovers/menus — no forced position so the
+   element keeps its Tailwind `absolute` placement. */
+.hrx-pop {
+  background: linear-gradient(160deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.8));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  box-shadow:
+    0 24px 50px -20px rgba(2, 6, 23, 0.95),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.hrx-card-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+.hrx-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(129, 140, 248, 0.45);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.08) inset,
+    0 30px 60px -28px rgba(79, 70, 229, 0.55);
+}
+
+/* Soft neon glows used behind icons / accents */
+.hrx-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(34px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.hrx-glow-indigo { background: radial-gradient(circle, rgba(79, 70, 229, 0.9), transparent 70%); }
+.hrx-glow-violet { background: radial-gradient(circle, rgba(139, 92, 246, 0.9), transparent 70%); }
+.hrx-glow-emerald { background: radial-gradient(circle, rgba(16, 185, 129, 0.9), transparent 70%); }
+.hrx-glow-amber { background: radial-gradient(circle, rgba(245, 158, 11, 0.9), transparent 70%); }
+.hrx-glow-cyan { background: radial-gradient(circle, rgba(6, 182, 212, 0.9), transparent 70%); }
+
+/* Icon tiles */
+.hrx-icon-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
+}
+
+/* Sidebar nav links */
+.hrx-nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 46px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--hrx-muted);
+  border: 1px solid transparent;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.hrx-nav-link:hover {
+  color: var(--hrx-text);
+  background: rgba(148, 163, 184, 0.08);
+}
+/* collapsed rail: square, centred icon, no side padding or label gap */
+.hrx-nav-link.hrx-nav-link--collapsed {
+  padding-left: 0;
+  padding-right: 0;
+  gap: 0;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-inline: auto;
+}
+.hrx-nav-link-active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.85), rgba(139, 92, 246, 0.75));
+  border-color: rgba(165, 180, 252, 0.45);
+  box-shadow:
+    0 10px 30px -12px rgba(79, 70, 229, 0.85),
+    0 0 0 1px rgba(129, 140, 248, 0.25) inset;
+}
+
+/* Glass input (search) */
+.hrx-input {
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--hrx-text);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.hrx-input::placeholder { color: var(--hrx-faint); }
+.hrx-input:focus {
+  border-color: rgba(129, 140, 248, 0.6);
+  background: rgba(148, 163, 184, 0.14);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.22);
+  outline: none;
+}
+
+/* Custom scrollbars inside the dark theme */
+.hrx-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.hrx-scroll::-webkit-scrollbar-track { background: transparent; }
+.hrx-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+.hrx-scroll::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.4); }
+
+/* Recharts polish inside the dark theme */
+.hr-admin-dark .recharts-cartesian-grid line { stroke: rgba(148, 163, 184, 0.12); }
+.hr-admin-dark .recharts-text { fill: var(--hrx-muted); }
+
+@keyframes hrx-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hrx-rise { animation: hrx-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes hrx-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.hrx-float { animation: hrx-float 6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hrx-rise,
+  .hrx-float,
+  .hrx-card-hover { animation: none; transition: none; }
+}
+
+/* =====================================================================
+   HR Admin — LIGHT theme
+   Mirrors the dark scope in reverse. Applied when the shell wrapper
+   carries `.hr-admin-light` instead of `.hr-admin-dark`. The admin
+   sub-pages keep their native light Tailwind (no dark skin in scope);
+   only the dark-first custom components need re-tinting here.
+   ===================================================================== */
+.hr-admin-light {
+  color-scheme: light;
+  /* keep surfaces/foreground light (theme defaults); just align the accent
+     to the same indigo used in dark mode so both themes match */
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-primary-darker: #4338ca;
+  --color-primary-light: #eef2ff;
+  --color-primary-muted: #e0e7ff;
+}
+
+/* ambient shell — light gradient canvas (compound selector: the class sits
+   on the same element as .hr-admin-light) */
+.hr-admin-light.hrx-shell-bg {
+  color: #0f172a;
+  background-color: #eef2f8;
+  background-image:
+    radial-gradient(60rem 60rem at 12% -8%, rgba(99, 102, 241, 0.1), transparent 60%),
+    radial-gradient(48rem 48rem at 92% 4%, rgba(139, 92, 246, 0.08), transparent 58%),
+    radial-gradient(50rem 50rem at 78% 108%, rgba(6, 182, 212, 0.06), transparent 60%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2f8 100%);
+}
+
+/* glass surfaces */
+.hr-admin-light .hrx-card {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72));
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
+    0 20px 45px -28px rgba(15, 23, 42, 0.25);
+}
+.hr-admin-light .hrx-card-hover:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+    0 30px 60px -30px rgba(99, 102, 241, 0.4);
+}
+.hr-admin-light .hrx-pop {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.97), rgba(248, 250, 252, 0.97));
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 24px 50px -20px rgba(15, 23, 42, 0.25);
+}
+.hr-admin-light .hrx-sidebar-bg {
+  color: #0f172a;
+  background-image:
+    radial-gradient(36rem 36rem at -10% 0%, rgba(99, 102, 241, 0.1), transparent 60%),
+    radial-gradient(30rem 30rem at 120% 100%, rgba(139, 92, 246, 0.08), transparent 62%),
+    linear-gradient(180deg, #ffffff 0%, #f3f5fb 100%);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+.hr-admin-light .hrx-input {
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+}
+.hr-admin-light .hrx-input::placeholder { color: #94a3b8; }
+.hr-admin-light .hrx-input:focus {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.hr-admin-light .hrx-icon-tile {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(150deg, rgba(99, 102, 241, 0.14), rgba(99, 102, 241, 0.04));
+}
+.hr-admin-light .hrx-nav-link { color: #475569; }
+.hr-admin-light .hrx-nav-link:hover { color: #0f172a; background: rgba(15, 23, 42, 0.05); }
+/* active nav link keeps the indigo gradient + white text from the base rule */
+.hr-admin-light .hrx-glow { opacity: 0.22; filter: blur(42px); }
+.hr-admin-light .hrx-scroll::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.2); }
+
+/* IMPORTANT: the white/accent overrides below are scoped to the dark-first
+   custom surfaces only (`.hrx-card`, sidebar, popovers, `.hrx-ui` marker).
+   This keeps them off the admin sub-pages, whose `bg-primary text-white`
+   buttons must stay white in light mode. */
+
+/* white foreground text -> slate (3 tiers by opacity) */
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white { color: #0f172a; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/80,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/75,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/70,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/65,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/60 { color: #334155; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/55,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/50,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/45,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/40,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-white\/35 { color: #64748b; }
+
+/* white overlay fills -> faint slate tints */
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .bg-white\/4,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .bg-white\/5,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .bg-white\/6,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .bg-white\/8 { background-color: rgba(15, 23, 42, 0.04); }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .bg-white\/10,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .bg-white\/12,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .bg-white\/15 { background-color: rgba(15, 23, 42, 0.06); }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .bg-white\/20,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .bg-white\/25 { background-color: rgba(15, 23, 42, 0.08); }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .hover\:bg-white\/8:hover,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .hover\:bg-white\/10:hover,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .hover\:bg-white\/12:hover,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .hover\:bg-white\/20:hover,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .hover\:bg-white\/25:hover { background-color: rgba(15, 23, 42, 0.07); }
+
+/* white borders -> slate lines */
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .border-white\/5,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .border-white\/6,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .border-white\/8,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .border-white\/10,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .border-white\/12 { border-color: rgba(15, 23, 42, 0.1); }
+
+/* light-shade accent text -> darker shades for contrast on white */
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-indigo-300,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-indigo-200 { color: #4f46e5; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-violet-300,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-violet-200 { color: #7c3aed; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-emerald-300 { color: #059669; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-amber-300,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-amber-200 { color: #d97706; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-rose-300,
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-rose-200 { color: #e11d48; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .text-slate-300 { color: #475569; }
+
+/* gradient clip-text headings -> darker stops so they read on white */
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .from-indigo-300 { --tw-gradient-from: #4f46e5; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .via-violet-300 { --tw-gradient-via: #7c3aed; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .to-violet-300 { --tw-gradient-to: #7c3aed; }
+.hr-admin-light :is(.hrx-card, .hrx-sidebar-bg, .hrx-pop, .hrx-ui) .to-cyan-300 { --tw-gradient-to: #0891b2; }

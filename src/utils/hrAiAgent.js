@@ -10,6 +10,7 @@ import {
   getFallbackFromKnowledge,
 } from './aiKnowledge'
 import { findNavActions, getBrowseMenuActions } from './aiNavigation'
+import { detectAiAction } from './aiActions'
 
 function pick(text) {
   return text.trim().toLowerCase()
@@ -93,6 +94,9 @@ export function getLocalAiReply(message, ctx) {
   if (/hello|hi|hey/.test(q)) return greetingReply(ctx)
   if (/^help$|navigate|menu|where can|pages/.test(q)) return helpReply(ctx)
 
+  const actionReply = detectAiAction(message, k, ctx.portalRole)
+  if (actionReply) return actionReply
+
   const dataAnswer = queryAppKnowledge(message, k)
   if (dataAnswer) return dataAnswer
 
@@ -111,6 +115,9 @@ export async function getAiReply(message, ctx) {
   const role = ctx.portalRole || 'employee'
 
   if (k) {
+    const actionReply = detectAiAction(message, k, role)
+    if (actionReply) return normalizeReply(actionReply)
+
     const dataAnswer = queryAppKnowledge(message, k)
     if (dataAnswer) return normalizeReply(dataAnswer)
 

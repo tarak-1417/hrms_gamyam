@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Plus,
   Search,
@@ -8,10 +8,14 @@ import {
   Users,
   UserCheck,
   UserPlus,
+  Mail,
+  Phone,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import FilterBar, { FilterSelect } from '../../components/ui/FilterBar'
-import Badge from '../../components/ui/Badge'
 import EmployeeAvatar from '../../components/employee/EmployeeAvatar'
 import EmployeeDetailModal from '../../components/hr/EmployeeDetailModal'
 import EmployeeFormModal from '../../components/hr/EmployeeFormModal'
@@ -108,12 +112,12 @@ function SummaryCard({ icon: Icon, label, value, note, tone = 'default' }) {
 
   const iconClass =
     tone === 'primary'
-      ? 'bg-primary text-white'
+      ? 'bg-primary !text-white'
       : tone === 'success'
-        ? 'bg-emerald-500 text-white'
+        ? 'bg-emerald-500 !text-white'
         : tone === 'warning'
-          ? 'bg-amber-500 text-white'
-          : 'bg-neutral-900 text-white'
+          ? 'bg-amber-500 !text-white'
+          : 'bg-neutral-900 !text-white'
 
   return (
     <div className={`rounded-2xl border p-4 shadow-sm ${toneClass}`}>
@@ -131,64 +135,153 @@ function SummaryCard({ icon: Icon, label, value, note, tone = 'default' }) {
   )
 }
 
-function EmployeesTable({ employees, onView, onEdit }) {
+const STATUS_TONES = {
+  active: { dot: 'bg-emerald-400', text: 'text-emerald-300', ring: 'border-emerald-400/25 bg-emerald-500/12', accent: 'from-emerald-400/60' },
+  present: { dot: 'bg-emerald-400', text: 'text-emerald-300', ring: 'border-emerald-400/25 bg-emerald-500/12', accent: 'from-emerald-400/60' },
+  'on-leave': { dot: 'bg-amber-400', text: 'text-amber-300', ring: 'border-amber-400/25 bg-amber-500/12', accent: 'from-amber-400/60' },
+  probation: { dot: 'bg-amber-400', text: 'text-amber-300', ring: 'border-amber-400/25 bg-amber-500/12', accent: 'from-amber-400/60' },
+  remote: { dot: 'bg-violet-400', text: 'text-violet-300', ring: 'border-violet-400/25 bg-violet-500/12', accent: 'from-violet-400/60' },
+  inactive: { dot: 'bg-slate-400', text: 'text-slate-300', ring: 'border-slate-400/25 bg-slate-500/12', accent: 'from-slate-400/50' },
+  resigned: { dot: 'bg-rose-400', text: 'text-rose-300', ring: 'border-rose-400/25 bg-rose-500/12', accent: 'from-rose-400/60' },
+  rejected: { dot: 'bg-rose-400', text: 'text-rose-300', ring: 'border-rose-400/25 bg-rose-500/12', accent: 'from-rose-400/60' },
+}
+
+function statusTone(status) {
+  return STATUS_TONES[status] || STATUS_TONES.inactive
+}
+
+function formatHiredDate(value) {
+  if (!value) return '—'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return value
+  return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function EmployeeCard({ employee, onView, onEdit }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+  const tone = statusTone(employee.status)
+  const label = (employee.status || 'active').replace('-', ' ')
+
+  useEffect(() => {
+    if (!menuOpen) return undefined
+    const onDoc = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [menuOpen])
+
   return (
-    <div className="table-scroll -mx-4 overflow-x-auto sm:-mx-6">
-      <table className="w-full min-w-[880px] text-left text-sm">
-        <thead>
-          <tr className="border-b border-neutral-200 text-xs font-semibold uppercase tracking-wide text-muted">
-            <th className="px-4 py-3 font-semibold sm:px-6">Employee</th>
-            <th className="px-4 py-3 font-semibold">ID</th>
-            <th className="px-4 py-3 font-semibold">Department</th>
-            <th className="px-4 py-3 font-semibold">Role</th>
-            <th className="px-4 py-3 font-semibold">Join date</th>
-            <th className="px-4 py-3 font-semibold">Status</th>
-            <th className="px-4 py-3 font-semibold sm:pr-6">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-neutral-100">
-          {employees.map((employee) => (
-            <tr key={employee.id} className="transition-colors hover:bg-neutral-50/80">
-              <td className="px-4 py-4 sm:px-6">
-                <div className="flex items-center gap-3">
-                  <EmployeeAvatar employee={employee} size="sm" className="!h-10 !w-10 !rounded-full !text-xs" />
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground">{employee.name}</p>
-                    <p className="truncate text-xs text-muted">{employee.email}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-4 py-4 font-medium text-foreground">{employee.id}</td>
-              <td className="px-4 py-4 text-foreground">{employee.department}</td>
-              <td className="px-4 py-4 text-foreground">{employee.role}</td>
-              <td className="px-4 py-4 text-muted">{employee.joinDate || '—'}</td>
-              <td className="px-4 py-4">
-                <Badge status={employee.status} />
-              </td>
-              <td className="px-4 py-4 sm:pr-6">
-                <div className="inline-flex items-center gap-0.5 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => onView(employee.id)}
-                    className="rounded-lg p-2 text-neutral-500 transition hover:bg-neutral-50 hover:text-primary"
-                    aria-label={`View ${employee.name}`}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onEdit(employee)}
-                    className="rounded-lg p-2 text-neutral-500 transition hover:bg-neutral-50 hover:text-foreground"
-                    aria-label={`Edit ${employee.name}`}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="hrx-card hrx-card-hover relative flex flex-col overflow-hidden p-5">
+      <span
+        className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r ${tone.accent} via-transparent to-transparent`}
+        aria-hidden
+      />
+
+      <div className="flex items-start justify-between gap-3">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize ${tone.ring} ${tone.text}`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${tone.dot}`} />
+          {label}
+        </span>
+
+        <div ref={menuRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="rounded-lg border border-white/10 bg-white/5 p-1.5 text-white/55 transition hover:bg-white/10 hover:text-white"
+            aria-label={`Actions for ${employee.name}`}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+          {menuOpen && (
+            <div
+              role="menu"
+              className="hrx-pop absolute right-0 top-[calc(100%+0.4rem)] z-20 w-36 overflow-hidden rounded-xl py-1"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onView(employee.id)
+                }}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/8 hover:text-white"
+              >
+                <Eye className="h-4 w-4 text-white/45" />
+                View
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onEdit(employee)
+                }}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/8 hover:text-white"
+              >
+                <Pencil className="h-4 w-4 text-white/45" />
+                Edit
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-2 flex flex-col items-center text-center">
+        <EmployeeAvatar employee={employee} size="lg" className="!ring-white/10" />
+        <h3 className="mt-3 text-lg font-bold tracking-tight text-white">{employee.name}</h3>
+        <p className="mt-0.5 text-sm font-semibold text-indigo-300">{employee.role}</p>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl border border-white/8 bg-white/5 p-4">
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-white/40">Department</p>
+          <p className="mt-1 text-sm font-semibold text-white">{employee.department}</p>
+        </div>
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-white/40">Hired date</p>
+          <p className="mt-1 text-sm font-semibold text-white">{formatHiredDate(employee.joinDate)}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-2.5 border-t border-white/8 pt-4">
+        <a
+          href={`mailto:${employee.email}`}
+          className="flex items-center gap-2.5 text-sm text-white/70 transition hover:text-white"
+        >
+          <Mail className="h-4 w-4 shrink-0 text-indigo-300" strokeWidth={2} />
+          <span className="truncate">{employee.email}</span>
+        </a>
+        {employee.phone && employee.phone !== '—' ? (
+          <a
+            href={`tel:${employee.phone}`}
+            className="flex items-center gap-2.5 text-sm text-white/70 transition hover:text-white"
+          >
+            <Phone className="h-4 w-4 shrink-0 text-indigo-300" strokeWidth={2} />
+            <span className="truncate">{employee.phone}</span>
+          </a>
+        ) : (
+          <p className="flex items-center gap-2.5 text-sm text-white/35">
+            <Phone className="h-4 w-4 shrink-0" strokeWidth={2} />
+            No phone on file
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function EmployeesGrid({ employees, onView, onEdit }) {
+  return (
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      {employees.map((employee) => (
+        <EmployeeCard key={employee.id} employee={employee} onView={onView} onEdit={onEdit} />
+      ))}
     </div>
   )
 }
@@ -209,7 +302,7 @@ export default function Employees() {
     getEmployeeDetails,
   } = useHrms()
 
-  const PAGE_SIZE = 10
+  const PAGE_SIZE = 6
 
   const departmentNames = useMemo(() => {
     const fromOrg = getDepartmentNames(deptRecords)
@@ -464,7 +557,7 @@ export default function Employees() {
             <button
               type="button"
               onClick={openAddModal}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold !text-white shadow-sm hover:bg-primary-dark"
             >
               <Plus className="h-4 w-4" />
               Add employee
@@ -552,37 +645,53 @@ export default function Employees() {
           </div>
         ) : (
           <div className="space-y-4">
-            <EmployeesTable employees={pageEmployees} onView={setDetailId} onEdit={openEditModal} />
+            <EmployeesGrid employees={pageEmployees} onView={setDetailId} onEdit={openEditModal} />
 
-            {employees.length > PAGE_SIZE ? (
-              <div className="flex flex-col gap-3 border-t border-neutral-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-muted">
-                  Showing <span className="font-semibold text-foreground">{pageStart + 1}</span>–
-                  <span className="font-semibold text-foreground">
+            {totalPages > 1 ? (
+              <div className="hrx-ui flex flex-col gap-3 border-t border-white/8 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-white/50">
+                  Showing <span className="font-semibold text-white">{pageStart + 1}</span>–
+                  <span className="font-semibold text-white">
                     {Math.min(pageStart + PAGE_SIZE, employees.length)}
                   </span>{' '}
-                  of <span className="font-semibold text-foreground">{employees.length}</span>
+                  of <span className="font-semibold text-white">{employees.length}</span>
                 </p>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white/5"
                   >
+                    <ChevronLeft className="h-3.5 w-3.5" />
                     Prev
                   </button>
-                  <span className="text-xs font-semibold text-muted">
-                    Page <span className="text-foreground">{currentPage}</span> / {totalPages}
-                  </span>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setPage(n)}
+                      aria-current={n === currentPage ? 'page' : undefined}
+                      className={`inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-semibold transition ${
+                        n === currentPage
+                          ? 'border border-indigo-400/50 bg-gradient-to-br from-indigo-500 to-violet-500 !text-white shadow-lg shadow-indigo-500/30'
+                          : 'border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+
                   <button
                     type="button"
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white/5"
                   >
                     Next
+                    <ChevronRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>

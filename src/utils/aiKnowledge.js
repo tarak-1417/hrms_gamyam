@@ -4,6 +4,7 @@
 
 import analytics from '../data/analytics.json'
 import { findNavActions, getBrowseMenuActions, getQuickNavActions } from './aiNavigation'
+import { buildEmployeeLeaveSummary, buildLeaveBalanceCardItems } from './leaveBalance'
 
 const POLICY = {
   workHours: '9:00 AM – 6:00 PM, Monday–Friday',
@@ -102,6 +103,19 @@ export function buildAppKnowledge({ hrms, user, portalRole, adminStats, managerK
     : []
   const myTasks = tasks.filter((t) => !t.done)
 
+  const myLeaveSummary = myEmployee
+    ? buildEmployeeLeaveSummary({
+        employee: myEmployee,
+        employeeId: myEmployee.id,
+        leaveRequests: hrms.leaveRequests || [],
+        leaveBalancesByEmployee: hrms.leaveBalancesByEmployee || {},
+        fallbackBalance: hrms.employeeStats?.leaveBalance,
+        optionalHolidayClaims: hrms.optionalHolidayClaims || [],
+        leavePolicy: hrms.leavePolicy || {},
+      })
+    : null
+  const myLeaveCards = myLeaveSummary ? buildLeaveBalanceCardItems(myLeaveSummary) : []
+
   return {
     portalRole,
     userName: user?.name,
@@ -139,6 +153,8 @@ export function buildAppKnowledge({ hrms, user, portalRole, adminStats, managerK
     myTodayLog,
     myLeaves,
     myTasks,
+    myLeaveSummary,
+    myLeaveCards,
   }
 }
 
@@ -338,10 +354,27 @@ export function queryAppKnowledge(message, k) {
       role,
     )
   }
-  if (/leave balance|casual|sick|earned/.test(q) && role === 'employee' && k.employeeStats?.leaveBalance) {
-    const b = k.employeeStats.leaveBalance
+  if (
+    /leave balance|how many leave|leaves do i|leaves left|remaining leave|my leave|casual|sick|earned|annual leave/.test(
+      q,
+    ) &&
+    role === 'employee' &&
+    k.myLeaveCards?.length
+  ) {
+    const cards = k.myLeaveCards
+    const dayCards = cards.filter((c) => c.unit !== 'holidays')
+    const totalRemaining = dayCards.reduce((s, c) => s + c.remaining, 0)
+    const lines = cards.map((c) => {
+      const unit = c.unit === 'holidays' ? 'holiday' : 'day'
+      const remLabel = `${c.remaining} of ${c.total} ${c.remaining === 1 ? unit : `${unit}s`}`
+      return `• ${c.shortLabel}: ${remLabel} left${c.used ? ` · ${c.used} used` : ''}`
+    })
+    const pendingCount = k.myLeaves.filter((l) => l.status === 'pending').length
+    const pendingNote = pendingCount
+      ? `\n\nYou also have ${pendingCount} request(s) pending approval.`
+      : ''
     return withNav(
-      `Your balance: Casual ${b.casual}, Sick ${b.sick}, Earned ${b.earned} days.`,
+      `You have ${totalRemaining} leave day(s) remaining:\n${lines.join('\n')}${pendingNote}`,
       message,
       role,
       ['/employee/leave'],
@@ -403,13 +436,16 @@ export function queryAppKnowledge(message, k) {
 
   // —— Holidays ——
   if (/holiday|festival|diwali|republic|calendar/.test(q)) {
-    const upcoming = k.holidays
+    const allUpcoming = k.holidays
       .filter((h) => h.date >= k.today)
       .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 5)
+    const upcoming = allUpcoming.slice(0, 5)
+    const more = allUpcoming.length - upcoming.length
     return withNav(
-      upcoming.length
-        ? `Upcoming holidays:\n${upcoming.map((h) => `• ${h.name} — ${h.date} (${h.type})`).join('\n')}`
+      allUpcoming.length
+        ? `You have ${allUpcoming.length} upcoming holiday(s). Next ${upcoming.length}:\n${upcoming
+            .map((h) => `• ${h.name} — ${h.date} (${h.type})`)
+            .join('\n')}${more > 0 ? `\n…and ${more} more` : ''}`
         : 'No upcoming holidays listed.',
       message,
       role,
@@ -423,7 +459,9 @@ export function queryAppKnowledge(message, k) {
       .slice(0, 5)
       .map((a) => `• ${a.user}: ${a.action} (${a.time})`)
       .join('\n')
-    return withNav(`Recent activity:\n${list}`, message, role, [role === 'admin' ? '/admin' : '/manager'])
+    return withNav(`Recent activity:\n${list}`, message, role, [
+      role === 'admin' ? '/admin/overview' : '/manager/overview',
+    ])
   }
 
   // —— Policy / geo ——
@@ -496,7 +534,7 @@ export function queryAppKnowledge(message, k) {
         `HR snapshot:\n• Employees: ${s.totalEmployees}\n• Present today: ${s.presentToday} (${rate}%)\n• On leave: ${s.onLeave}\n• Pending leaves: ${s.pendingLeaves}\n• Active jobs: ${k.activeJobs.length}`,
         message,
         role,
-        ['/admin'],
+        ['/admin/overview'],
       )
     }
   }
@@ -518,7 +556,7 @@ export function queryAppKnowledge(message, k) {
         `Manager snapshot:\n• Team size: ${m.teamSize}\n• Present: ${m.presentToday}\n• Pending approvals: ${m.pendingApprovals}\n• Avg attendance: ${m.avgAttendance}%`,
         message,
         role,
-        ['/manager'],
+        ['/manager/overview'],
       )
     }
   }

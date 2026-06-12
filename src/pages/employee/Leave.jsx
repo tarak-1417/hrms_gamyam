@@ -58,7 +58,7 @@ function getHolidayTypeIcon(type) {
   return CalendarDays
 }
 
-export default function EmployeeLeave() {
+export default function EmployeeLeave({ embedded = false }) {
   const { user } = useAuth()
   const {
     employees = [],
@@ -263,10 +263,12 @@ export default function EmployeeLeave() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="page-title">Leave & Holidays</h1>
-        <p className="page-subtitle">Balances, company holidays, optional offs, and leave applications</p>
-      </div>
+      {!embedded && (
+        <div>
+          <h1 className="page-title">Leave & Holidays</h1>
+          <p className="page-subtitle">Balances, company holidays, optional offs, and leave applications</p>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {leaveBalanceCards.map((card) => (

@@ -2,12 +2,8 @@ import { FileText, Eye, PenLine, Pencil, Trash2 } from 'lucide-react'
 import Badge from '../ui/Badge'
 import { categoryLabel, normalizeTemplate } from '../../utils/documentTemplateUtils'
 
-const CATEGORY_COLORS = {
-  hiring: 'border-l-primary bg-primary-light/30',
-  employment: 'border-l-blue-500 bg-blue-50/50',
-  exit: 'border-l-neutral-400 bg-neutral-50',
-  compliance: 'border-l-amber-500 bg-amber-50/40',
-}
+// All templates share the offer-letter (hiring) accent for a consistent look.
+const ACCENT = 'border-l-primary bg-primary-light/30'
 
 export default function DocumentTemplateCard({
   template,
@@ -17,7 +13,7 @@ export default function DocumentTemplateCard({
   onDelete,
   canManage = false,
 }) {
-  const accent = CATEGORY_COLORS[template.category] ?? 'border-l-neutral-300 bg-white'
+  const accent = ACCENT
   const fieldCount = normalizeTemplate(template).fields?.length ?? 0
 
   return (

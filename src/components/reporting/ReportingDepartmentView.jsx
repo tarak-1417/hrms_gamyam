@@ -64,8 +64,8 @@ export default function ReportingDepartmentView({
                           }`}
                         >
                           <span
-                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white ${
-                              selected ? 'bg-primary' : 'bg-neutral-600'
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                              selected ? 'bg-primary text-white' : 'bg-primary-light text-primary'
                             }`}
                           >
                             {emp.avatar || emp.name?.charAt(0)}

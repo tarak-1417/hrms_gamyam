@@ -1,69 +1,73 @@
 import { Outlet } from 'react-router-dom'
 import {
+  Sparkles,
   LayoutDashboard,
   CalendarOff,
   GitBranch,
   FolderOpen,
   FileText,
-  Receipt,
   User,
 } from 'lucide-react'
-import Sidebar from '../components/layout/Sidebar'
-import Header from '../components/layout/Header'
+import AdminDarkSidebar from '../components/hr/admin/AdminDarkSidebar'
+import AdminDarkNavbar from '../components/hr/admin/AdminDarkNavbar'
 import Toast from '../components/ui/Toast'
 import FloatingAiAssistant from '../components/ai/FloatingAiAssistant'
 import useAppNavigation from '../hooks/useAppNavigation'
+import useAdminTheme from '../hooks/useAdminTheme'
 
 const navItems = [
-  { to: '/employee', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/employee', icon: Sparkles, label: 'AI Assistant', end: true },
+  { to: '/employee/overview', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/employee/leave', icon: CalendarOff, label: 'Leave Management' },
-  { to: '/employee/reimbursements', icon: Receipt, label: 'Reimbursement' },
   { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
   { to: '/employee/reporting', icon: GitBranch, label: 'My Reporting' },
   { to: '/employee/documents', icon: FolderOpen, label: 'Documents' },
+  { to: '/employee/profile', icon: User, label: 'Profile' },
 ]
 
 export default function EmployeeLayout() {
   const { mobileNav: nav, sidebar, toggleNavigation } = useAppNavigation()
+  const { isDark, toggle: toggleTheme } = useAdminTheme()
 
   return (
-    <div className="app-shell flex h-screen flex-col overflow-hidden bg-surface">
-      <Header
-        variant="toolbar"
-        onMenuClick={toggleNavigation}
-        sidebarCollapsed={sidebar.collapsed}
-        mobileNavOpen={nav.open}
-        profilePath="/employee/profile"
-        portalLabel="Employee Portal"
-        toolbarHomePath="/employee"
+    <div
+      className={`${
+        isDark ? 'hr-admin-dark' : 'hr-admin-light'
+      } app-shell hrx-shell-bg relative flex h-screen gap-4 overflow-hidden p-3 sm:gap-6 sm:p-4`}
+    >
+      {nav.open && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={nav.close}
+          aria-label="Close menu"
+        />
+      )}
+
+      <AdminDarkSidebar
+        navItems={navItems}
+        mobileOpen={nav.open}
+        onClose={nav.close}
+        collapsed={sidebar.collapsed}
+        onToggleCollapsed={sidebar.toggle}
+        homePath="/employee"
+        brandLabel="Employee Portal"
+        assistTitle="Your HR Copilot"
+        assistText="Ask about your leave balance, payslips and documents in seconds."
       />
 
-      <div className="relative flex min-h-0 flex-1 overflow-hidden">
-        {nav.open && (
-          <button
-            type="button"
-            className="app-shell-overlay fixed inset-x-0 bottom-0 z-40 bg-black/50 lg:hidden"
-            onClick={nav.close}
-            aria-label="Close menu"
-          />
-        )}
-        <Sidebar
-          variant="light"
-          menuLabel="Main menu"
-          navItems={navItems}
-          bottomNavItems={[{ to: '/employee/profile', icon: User, label: 'Profile' }]}
-          showSupportCard
-          mobileOpen={nav.open}
-          onClose={nav.close}
-          dockBelowHeader
-          collapsed={sidebar.collapsed}
-          onToggleCollapsed={sidebar.toggle}
-          showFooterCollapseToggle={false}
+      <main className="hrx-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden pr-1 text-sm">
+        <AdminDarkNavbar
+          onMenuClick={toggleNavigation}
+          mobileNavOpen={nav.open}
+          profilePath="/employee/profile"
+          isDark={isDark}
+          onToggleTheme={toggleTheme}
+          searchPlaceholder="Search leave, payslips, pages…"
+          pendingCount={0}
         />
-        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-sm sm:p-5">
-          <Outlet />
-        </main>
-      </div>
+        <Outlet />
+      </main>
 
       <FloatingAiAssistant />
       <Toast />

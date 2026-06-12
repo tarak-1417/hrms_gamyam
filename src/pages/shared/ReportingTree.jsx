@@ -335,7 +335,7 @@ export default function ReportingTree() {
               }}
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
                 layoutPattern === pattern
-                  ? 'bg-neutral-800 text-white'
+                  ? 'bg-primary text-white'
                   : 'text-muted hover:bg-neutral-50 hover:text-foreground'
               }`}
               title={LAYOUT_PATTERN_HINTS[pattern]}

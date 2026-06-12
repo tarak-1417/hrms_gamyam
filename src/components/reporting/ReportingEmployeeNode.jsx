@@ -36,8 +36,8 @@ function ReportingEmployeeNode({ data, selected }) {
       >
         <div className="flex items-start gap-3">
           <div
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white ${
-              highlighted ? 'bg-primary' : 'bg-gradient-to-br from-neutral-700 to-neutral-900'
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${
+              highlighted ? 'bg-primary text-white' : 'bg-primary-light text-primary'
             }`}
           >
             {employee.avatar || employee.name?.charAt(0)}

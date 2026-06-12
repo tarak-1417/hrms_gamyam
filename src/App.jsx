@@ -12,19 +12,19 @@ import EmployeeLayout from './layouts/EmployeeLayout'
 
 const HrDashboard = lazy(() => import('./pages/admin/HrDashboard'))
 const Employees = lazy(() => import('./pages/admin/Employees'))
+const Assistant = lazy(() => import('./pages/admin/Assistant'))
 const Departments = lazy(() => import('./pages/shared/Departments'))
 const Recruitment = lazy(() => import('./pages/admin/Recruitment'))
 const ManagerReports = lazy(() => import('./pages/manager/Reports'))
 
 const ManagerDashboard = lazy(() => import('./pages/manager/Dashboard'))
 const ManagerTeam = lazy(() => import('./pages/manager/Team'))
+const ManagerLeave = lazy(() => import('./pages/manager/Leave'))
 const HrLeave = lazy(() => import('./pages/shared/HrLeave'))
 const DocumentTemplates = lazy(() => import('./pages/shared/DocumentTemplates'))
 const AuditLogs = lazy(() => import('./pages/shared/AuditLogs'))
 const ReportingTree = lazy(() => import('./pages/shared/ReportingTree'))
 const Payslips = lazy(() => import('./pages/employee/Payslips'))
-const Reimbursements = lazy(() => import('./pages/shared/Reimbursements'))
-const EmployeeReimbursements = lazy(() => import('./pages/employee/Reimbursements'))
 
 const SuperAdminDashboard = lazy(() => import('./pages/superadmin/Dashboard'))
 const Companies = lazy(() => import('./pages/superadmin/Companies'))
@@ -75,12 +75,13 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<ManagerDashboard />} />
+            <Route index element={<Assistant />} />
+            <Route path="overview" element={<ManagerDashboard />} />
             <Route path="team" element={<ManagerTeam />} />
             <Route path="departments" element={<Departments />} />
-            <Route path="leave" element={<HrLeave />} />
+            <Route path="leave" element={<ManagerLeave defaultTab="approvals" />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="my-leave" element={<EmployeeLeave />} />
+            <Route path="my-leave" element={<ManagerLeave defaultTab="apply" />} />
             <Route path="payslips" element={<Payslips />} />
             <Route path="documents" element={<Documents />} />
             <Route path="reporting" element={<ReportingTree />} />
@@ -95,14 +96,14 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<HrDashboard />} />
+            <Route index element={<Assistant />} />
+            <Route path="overview" element={<HrDashboard />} />
             <Route path="employees" element={<Employees />} />
             <Route path="departments" element={<Departments />} />
             <Route path="leave" element={<HrLeave />} />
             <Route path="profile" element={<Profile />} />
             <Route path="my-leave" element={<EmployeeLeave />} />
             <Route path="payslips" element={<Payslips />} />
-            <Route path="reimbursements" element={<Reimbursements />} />
             <Route path="my-documents" element={<Documents />} />
             <Route path="recruitment" element={<Recruitment />} />
             <Route path="reports" element={<ManagerReports />} />
@@ -119,7 +120,8 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<SuperAdminDashboard />} />
+            <Route index element={<Assistant />} />
+            <Route path="overview" element={<SuperAdminDashboard />} />
             <Route path="organization" element={<Organization />} />
             <Route path="reporting" element={<ReportingTree />} />
             <Route path="companies" element={<Companies />} />
@@ -151,14 +153,13 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<EmployeeDashboard />} />
+            <Route index element={<AiAssistant />} />
+            <Route path="overview" element={<EmployeeDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="leave" element={<EmployeeLeave />} />
-            <Route path="reimbursements" element={<EmployeeReimbursements />} />
             <Route path="payslips" element={<Payslips />} />
             <Route path="reporting" element={<ReportingTree />} />
             <Route path="documents" element={<Documents />} />
-            <Route path="ai" element={<AiAssistant />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

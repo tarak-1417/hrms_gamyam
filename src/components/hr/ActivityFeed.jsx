@@ -85,9 +85,22 @@ export default function ActivityFeed({
   className = '',
   viewAllTo = '/admin/audit-logs',
   subtitle = 'Latest updates from your organization',
+  bare = false,
 }) {
   const { activityFeed } = useHrms()
   const items = activityFeed.filter((item) => item.type !== 'attendance')
+
+  // `bare` renders just the timeline (no card chrome / header) for embedding
+  // inside an existing glass panel.
+  if (bare) {
+    return items.length === 0 ? (
+      <p className="text-sm text-muted">No recent activity</p>
+    ) : (
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        <ActivityTimeline items={items} />
+      </div>
+    )
+  }
 
   return (
     <div
